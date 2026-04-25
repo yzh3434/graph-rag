@@ -1,0 +1,3 @@
+python -m eval.eval_runner --run_id baseline_smoke --limit 5
+
+python -m eval.eval_runner --run_id baseline_v1

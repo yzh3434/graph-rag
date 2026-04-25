@@ -1,0 +1,3 @@
+# 测试集生成与评估的额外依赖
+# 基础依赖（neo4j、openai、python-dotenv 等）已在项目 requirements.txt 中
+tqdm>=4.64.0

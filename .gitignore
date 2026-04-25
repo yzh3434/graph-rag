@@ -1,0 +1,23 @@
+# 环境变量 - 含密钥,绝对不能传
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.idea/
+.claude/
+
+# 输出/数据/缓存
+eval_output/
+testset_output/
+
+# 大文件
+*.pkl
+*.pt
+*.ckpt
+*.bin
