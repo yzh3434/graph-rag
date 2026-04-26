@@ -28,6 +28,9 @@ class GraphRAGConfig:
     # 检索配置（LightRAG Round-robin策略）
     top_k: int = 5
 
+    # 路由配置
+    enable_llm_routing_fallback: bool = False  # 规则未命中三种模式时是否调用 LLM；默认走 hybrid_traditional
+
     # 生成配置
     temperature: float = 0.1
     max_tokens: int = 2048
@@ -61,6 +64,7 @@ class GraphRAGConfig:
             'embedding_model': self.embedding_model,
             'llm_model': self.llm_model,
             'top_k': self.top_k,
+            'enable_llm_routing_fallback': self.enable_llm_routing_fallback,
 
             'temperature': self.temperature,
             'max_tokens': self.max_tokens,
