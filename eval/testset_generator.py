@@ -56,13 +56,13 @@ class ExpectedStrategy(Enum):
 
 
 TYPE_TO_STRATEGY = {
-    QuestionType.SIMPLE_FACT: ExpectedStrategy.TRADITIONAL,
+    QuestionType.SIMPLE_FACT:     ExpectedStrategy.TRADITIONAL,
     QuestionType.ATTRIBUTE_QUERY: ExpectedStrategy.TRADITIONAL,
-    QuestionType.STEP_BY_STEP: ExpectedStrategy.TRADITIONAL,
-    QuestionType.ENTITY_RELATION: ExpectedStrategy.GRAPH_RAG,
-    QuestionType.MULTI_HOP: ExpectedStrategy.GRAPH_RAG,
-    QuestionType.COMPARISON: ExpectedStrategy.COMBINED,
-    QuestionType.CAUSAL: ExpectedStrategy.GRAPH_RAG,
+    QuestionType.STEP_BY_STEP:    ExpectedStrategy.TRADITIONAL,
+    QuestionType.ENTITY_RELATION: ExpectedStrategy.TRADITIONAL,
+    QuestionType.MULTI_HOP:       ExpectedStrategy.GRAPH_RAG,
+    QuestionType.COMPARISON:      ExpectedStrategy.COMBINED,
+    QuestionType.CAUSAL:          ExpectedStrategy.TRADITIONAL,
 }
 
 TYPE_TO_DIFFICULTY = {
