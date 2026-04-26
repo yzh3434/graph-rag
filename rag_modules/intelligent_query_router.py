@@ -43,7 +43,16 @@ class IntelligentQueryRouter:
     4. 结果质量监控：基于反馈优化路由决策
     """
     
-    def __init__(self, 
+    # 规则路由的强意图关键词
+    _MULTI_HOP_KEYWORDS = (
+        "哪些菜", "哪几道", "哪几种", "共同", "同时使用", "同时含",
+        "一起出现", "一起用", "都用", "搭配", "配什么", "出现在哪",
+    )
+    _COMPARISON_KEYWORDS = (
+        "区别", "不同", "对比", "哪个更", "哪个比较", "比较", "差异", "差别",
+    )
+
+    def __init__(self,
                  traditional_retrieval,  # 传统混合检索模块
                  graph_rag_retrieval,    # 图RAG检索模块
                  llm_client,
@@ -52,64 +61,78 @@ class IntelligentQueryRouter:
         self.graph_rag_retrieval = graph_rag_retrieval
         self.llm_client = llm_client
         self.config = config
-        
+
         # 路由统计
         self.route_stats = {
             "traditional_count": 0,
             "graph_rag_count": 0,
             "combined_count": 0,
-            "total_queries": 0
+            "total_queries": 0,
+            "pattern_route_count": 0,  # 规则短路命中次数（顺手降 latency 指标）
         }
+
+        # 实体词典（lazy load：首次规则路由时从 Neo4j 拉一次，常驻内存）
+        self._dict_loaded = False
+        self._ingredient_names: List[str] = []
+        self._recipe_names: List[str] = []
         
     def analyze_query(self, query: str) -> QueryAnalysis:
         """
-        深度分析查询特征，决定最佳检索策略
+        分析查询特征，决定最佳检索策略。
+
+        两层路由：
+          1. 规则短路：明确的 multi_hop / comparison 模式直接路由，跳过 LLM
+          2. LLM 兜底：规则不命中或信号冲突时，让 LLM 综合判断（few-shot 示例引导）
         """
         logger.info(f"分析查询特征: {query}")
-        
-        # 使用LLM进行智能分析
+
+        # —— Layer 1: 规则短路 ——
+        pattern_result = self._pattern_based_route(query)
+        if pattern_result is not None:
+            self.route_stats["pattern_route_count"] += 1
+            logger.info(
+                f"规则短路命中: {pattern_result.recommended_strategy.value} "
+                f"({pattern_result.reasoning})"
+            )
+            return pattern_result
+
+        # —— Layer 2: LLM 兜底 ——
         analysis_prompt = f"""
-        作为RAG系统的查询分析专家，请深度分析以下查询的特征：
-        
-        查询：{query}
-        
-        请从以下维度分析：
-        
-        1. 查询复杂度 (0-1)：
-           - 0.0-0.3: 简单信息查找（如：红烧肉怎么做？）
-           - 0.4-0.7: 中等复杂度（如：川菜有哪些特色菜？）
-           - 0.8-1.0: 高复杂度推理（如：为什么川菜用花椒而不是胡椒？）
-        
-        2. 关系密集度 (0-1)：
-           - 0.0-0.3: 单一实体信息（如：西红柿的营养价值）
-           - 0.4-0.7: 实体间关系（如：鸡肉配什么蔬菜？）
-           - 0.8-1.0: 复杂关系网络（如：川菜的形成与地理、历史的关系）
-        
-        3. 推理需求：
-           - 是否需要多跳推理？
-           - 是否需要因果分析？
-           - 是否需要对比分析？
-        
-        4. 实体识别：
-           - 查询中包含多少个明确实体？
-           - 实体类型是什么？
-        
-        基于分析推荐检索策略：
-        - hybrid_traditional: 适合简单直接的信息查找
-        - graph_rag: 适合复杂关系推理和知识发现
-        - combined: 需要两种策略结合
-        
-        返回JSON格式：
-        {{
-            "query_complexity": 0.6,
-            "relationship_intensity": 0.8,
-            "reasoning_required": true,
-            "entity_count": 3,
-            "recommended_strategy": "graph_rag",
-            "confidence": 0.85,
-            "reasoning": "该查询涉及多个实体间的复杂关系，需要图结构推理"
-        }}
-        """
+作为 RAG 系统的查询分析专家，请分析以下烹饪问答查询，并选择最适合的检索策略。
+
+【可选策略】
+- hybrid_traditional: 单道菜的事实/属性/步骤/原因查询（混合检索：BM25 + 向量 + 图键值索引）
+- graph_rag:          多个食材/实体的共现、搭配、关系链查询（图遍历）
+- combined:           两道菜或两类菜的对比、差异查询（混合检索 + 图检索 融合）
+
+【判断原则】
+1. 查询是否涉及"多个食材一起出现/搭配"→ graph_rag
+2. 查询是否在"对比两道菜"→ combined
+3. 查询是否围绕"单一菜品"展开（无论是事实、属性、步骤还是为什么）→ hybrid_traditional
+4. 不要因为查询用了"为什么/如何"等词就路由到 graph_rag——单菜的"为什么"也属于 hybrid_traditional
+
+【参考示例】
+查询: "姜和香菜常出现在哪些菜里？"
+判断: 两个食材 + 共现查询，需要图遍历
+输出: {{"recommended_strategy": "graph_rag", "query_complexity": 0.7, "relationship_intensity": 0.9, "reasoning_required": true, "entity_count": 2, "confidence": 0.9, "reasoning": "多食材共现查询"}}
+
+查询: "宫保鸡丁和麻婆豆腐有什么区别？"
+判断: 两道菜对比
+输出: {{"recommended_strategy": "combined", "query_complexity": 0.7, "relationship_intensity": 0.5, "reasoning_required": true, "entity_count": 2, "confidence": 0.9, "reasoning": "两菜对比，需融合两路结果"}}
+
+查询: "茭白炒肉的原料有哪些？"
+判断: 单道菜的食材属性
+输出: {{"recommended_strategy": "hybrid_traditional", "query_complexity": 0.2, "relationship_intensity": 0.2, "reasoning_required": false, "entity_count": 1, "confidence": 0.95, "reasoning": "单菜属性查询，混合检索足够"}}
+
+查询: "为什么红烧肉要先焯水再炖？"
+判断: 单道菜的烹饪推理，菜谱内信息可解答
+输出: {{"recommended_strategy": "hybrid_traditional", "query_complexity": 0.6, "relationship_intensity": 0.2, "reasoning_required": true, "entity_count": 1, "confidence": 0.85, "reasoning": "单菜内部因果推理"}}
+
+【请分析以下查询】
+查询: {query}
+
+请严格返回一个 JSON 对象，字段同上方示例（recommended_strategy / query_complexity / relationship_intensity / reasoning_required / entity_count / confidence / reasoning），不要输出任何其他内容。
+"""
         
         try:
             response = self.llm_client.chat.completions.create(
@@ -162,7 +185,108 @@ class IntelligentQueryRouter:
             confidence=0.6,
             reasoning="基于规则的简单分析"
         )
-    
+
+    # ==================== 规则短路（Layer 1）====================
+
+    def _pattern_based_route(self, query: str) -> Optional[QueryAnalysis]:
+        """
+        规则路由：明确的 multi_hop / comparison 模式直接路由，跳过 LLM。
+        不命中返回 None，由调用方走 LLM 兜底。
+
+        判定规则：
+          - query 含 ≥2 个食材名 + multi_hop 关键词 → graph_rag
+          - query 含 ≥2 个菜名   + comparison 关键词 → combined
+          - 两类信号同时出现（冲突）→ 让 LLM 判断
+          - 词典未加载/加载失败    → 让 LLM 判断（fail-open 而非 fail-closed）
+        """
+        self._load_entity_dictionaries()
+        if not self._dict_loaded:
+            return None
+
+        has_multi_hop_kw  = any(kw in query for kw in self._MULTI_HOP_KEYWORDS)
+        has_comparison_kw = any(kw in query for kw in self._COMPARISON_KEYWORDS)
+
+        if has_multi_hop_kw and has_comparison_kw:
+            return None  # 信号冲突，LLM 判
+
+        if has_multi_hop_kw:
+            ingredients = self._count_matches(query, self._ingredient_names)
+            if len(ingredients) >= 2:
+                return QueryAnalysis(
+                    query_complexity=0.7,
+                    relationship_intensity=0.9,
+                    reasoning_required=True,
+                    entity_count=len(ingredients),
+                    recommended_strategy=SearchStrategy.GRAPH_RAG,
+                    confidence=0.95,
+                    reasoning=f"规则匹配：多食材共现查询（{ingredients[:3]}）",
+                )
+
+        if has_comparison_kw:
+            recipes = self._count_matches(query, self._recipe_names)
+            if len(recipes) >= 2:
+                return QueryAnalysis(
+                    query_complexity=0.7,
+                    relationship_intensity=0.5,
+                    reasoning_required=True,
+                    entity_count=len(recipes),
+                    recommended_strategy=SearchStrategy.COMBINED,
+                    confidence=0.95,
+                    reasoning=f"规则匹配：两菜对比查询（{recipes[:3]}）",
+                )
+
+        return None
+
+    def _load_entity_dictionaries(self):
+        """从 Neo4j lazy load 食材名 + 菜名词典，按长度倒序便于 longest-match"""
+        if self._dict_loaded:
+            return
+
+        driver = getattr(self.graph_rag_retrieval, "driver", None)
+        if driver is None:
+            logger.debug("graph_rag_retrieval.driver 未就绪，规则路由暂时跳过")
+            return
+
+        try:
+            with driver.session() as session:
+                ing_result = session.run(
+                    "MATCH (i:Ingredient) WHERE i.name IS NOT NULL "
+                    "RETURN DISTINCT i.name AS name"
+                )
+                self._ingredient_names = [r["name"] for r in ing_result if r["name"]]
+
+                rec_result = session.run(
+                    "MATCH (r:Recipe) WHERE r.name IS NOT NULL "
+                    "RETURN DISTINCT r.name AS name"
+                )
+                self._recipe_names = [r["name"] for r in rec_result if r["name"]]
+
+            self._ingredient_names.sort(key=len, reverse=True)
+            self._recipe_names.sort(key=len, reverse=True)
+            self._dict_loaded = True
+            logger.info(
+                f"路由器实体词典加载完成: "
+                f"{len(self._ingredient_names)} 食材 / {len(self._recipe_names)} 菜品"
+            )
+        except Exception as e:
+            logger.warning(f"路由器实体词典加载失败: {e}")
+
+    @staticmethod
+    def _count_matches(text: str, dictionary: List[str]) -> List[str]:
+        """
+        从 text 中找出 dictionary 里出现的词。
+        dictionary 必须按长度倒序排好。命中后用占位符消去，避免 "鸡蛋" 命中后 "鸡" 又被算一次。
+        """
+        found: List[str] = []
+        remaining = text
+        for term in dictionary:
+            if term and term in remaining:
+                found.append(term)
+                remaining = remaining.replace(term, "□" * len(term))
+        return found
+
+    # ==================== 路由执行 ====================
+
     def route_query(self, query: str, top_k: int = 5) -> Tuple[List[Document], QueryAnalysis]:
         """
         智能路由查询到最适合的检索引擎
