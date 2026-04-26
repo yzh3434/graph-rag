@@ -1,0 +1,202 @@
+﻿question,ground_truth,question_type,difficulty,expected_strategy,source_node_ids,metadata
+生汆丸子汤的制作步骤是什么？,"生汆丸子汤的制作步骤如下：
+第1步（步骤1）：肉改刀切开，肥瘦三七分，上刀剁一剁，用刀背砸一砸，把肉筋打开打松疏，继续剁成肉末。
+第2步（步骤2）：每斤肉加6克盐、1克胡椒粉，上手抓匀；葱姜花椒水分次加入，边加边搅，让肉吸饱水（每斤肉末80克葱姜花椒水）；加入鸡蛋清顺一个方向搅；再加入40克土豆淀粉搅匀；最后加熟豆油保持嫩滑弹。
+第3步（步骤3）：起锅烧水，烧开后改小火至似开非开状态，用手挤丸子下锅，待全部漂起后用小火再煮1分钟。
+第4步（步骤4）：粉丝放碗底，加入木耳、黄花、小香葱，并用盐、胡椒粉、鸡粉打底调味；将连汤带丸子冲入碗中，淋3-5滴香油，最后加一小颗香菜即可。",step_by_step,medium,hybrid_traditional,201003707,"{""generated_by"": ""graph_based"", ""step_count"": 4}"
+巴基斯坦牛肉咖喱的制作步骤是什么？,"巴基斯坦牛肉咖喱的制作步骤如下：
+第1步（步骤1）：全部螺丝椒切成段状，备用
+第2步（步骤2）：全部番茄打成番茄蓉，备用
+第3步（步骤3）：牛肉切成2cm的小块，洗净备用
+第4步（步骤4）：炒锅中倒入一层油（用来防止番茄蓉沸腾蒸发）
+第5步（步骤5）：倒入番茄蓉，持续搅拌2-3分钟，等待它越变越红
+第6步（步骤6）：加入5g蒜粉、5g姜粉和1包50g的Masala粉，搅拌均匀
+第7步（步骤7）：加入牛肉和螺丝椒段，搅拌均匀
+第8步（步骤8）：加入1盒酸奶（为了让整个酱汁变得粘稠），搅拌均匀
+第9步（步骤9）：将整锅材料转移到电饭煲/电炖锅，并加入250 ml的水，开启炖肉/慢炖档，设定时间2-3个小时
+第10步（步骤10）：等待完成，开锅检查牛肉软糯，就可以吃了",step_by_step,medium,hybrid_traditional,201002555,"{""generated_by"": ""graph_based"", ""step_count"": 10}"
+姜和香菜常常一起出现在哪些菜里？,姜和香菜常常一起出现在这些菜中：红烧鱼、红烧鱼头、糖醋鲤鱼、葱油、口水鸡、无骨鸡爪、水煮牛肉、老式锅包肉。,multi_hop,hard,graph_rag,201000073;201000100;201000290;201000815;201002255;201002673;201002797;201003076,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""姜"", ""香菜""], ""recipe_count"": 8}"
+请问茭白炒肉的原料有哪些？,制作茭白炒肉需要以下主要食材：料酒、盐、食用油、淀粉、瘦肉、茭白、姜、鸡精、蒜。,entity_relation,medium,hybrid_traditional,201003121,"{""generated_by"": ""graph_based"", ""ingredient_count"": 9}"
+金枪鱼酱三明治的烹饪时间是多久？,金枪鱼酱三明治的烹饪时间是约3分钟。,attribute_query,easy,hybrid_traditional,201000718,"{""generated_by"": ""graph_based"", ""attribute"": ""cook_time""}"
+小米粥需要哪些主要食材？,制作小米粥需要以下主要食材：小米、水。,entity_relation,medium,hybrid_traditional,201003700,"{""generated_by"": ""graph_based"", ""ingredient_count"": 2}"
+制作蒜蓉空心菜需要准备什么食材？,制作蒜蓉空心菜需要以下主要食材：空心菜、盐、食用油、白糖、大蒜、生抽。,entity_relation,medium,hybrid_traditional,201005596,"{""generated_by"": ""graph_based"", ""ingredient_count"": 6}"
+生汆丸子汤需要哪些主要食材？,制作生汆丸子汤需要以下主要食材：胡椒粉、黄花、前腿肉、香菜、香油、葱姜花椒水、小香葱、鸡蛋清、熟豆油、鸡粉、粉丝、盐、木耳、土豆淀粉。,entity_relation,medium,hybrid_traditional,201003707,"{""generated_by"": ""graph_based"", ""ingredient_count"": 14}"
+素炒豆角的制作步骤是什么？,"素炒豆角的制作步骤如下：
+第1步（步骤1）：葱切花，蒜切沫，备用。
+第2步（步骤2）：生抽、老抽、耗油、盐混合调料汁，备用。
+第3步（步骤3）：小米椒切圈，备用。
+第4步（步骤4）：豆角去筋，45°斜切4-10cm小段，备用。
+第5步（步骤5）：起锅烧油(10ml-15ml)，冒烟后放入葱、小米椒，翻炒至闻到香味。
+第6步（步骤6）：加入豆角，翻炒30秒。
+第7步（步骤7）：加入料汁，开大火翻炒2分钟。
+第8步（步骤8）：倒入150ml水，转中小火，盖上锅盖焖制8-10分钟。
+第9步（步骤9）：加入蒜切沫，出锅。",step_by_step,medium,hybrid_traditional,201005031,"{""generated_by"": ""graph_based"", ""step_count"": 9}"
+为什么红烧鲤鱼要加入五花肉？,加入五花肉可以增加菜肴的油脂和肉香，使鱼肉更加鲜嫩多汁。五花肉在煸炒过程中释放的油脂能提升整体口感，同时与鱼肉的鲜味相互融合，丰富层次感。此外，五花肉中的脂肪有助于调味料的渗透，使红烧鲤鱼更入味。,causal,hard,hybrid_traditional,201000127,"{""generated_by"": ""graph_based"", ""step_count"": 17}"
+香煎翘嘴鱼这道菜的分类是什么？,香煎翘嘴鱼的分类是水产。,simple_fact,easy,hybrid_traditional,201000424,"{""generated_by"": ""graph_based"", ""category"": ""水产""}"
+为什么糖醋鲤鱼要先腌制再下锅？,腌制可以让鱼肉更入味，同时加入盐和料酒能去腥增香，并帮助鱼肉锁住水分，使炸出的鱼肉外酥里嫩。,causal,hard,hybrid_traditional,201000290,"{""generated_by"": ""graph_based"", ""step_count"": 15}"
+请详细介绍炒河粉的做法。,"炒河粉的制作步骤如下：
+第1步（步骤1）：小葱切碎（葱白和葱叶分开）、蒜瓣拍碎，丢案板上备用。
+第2步（步骤2）：打碎鸡蛋，捞一点蛋清到一只碗中，剩下的丢入另一只碗中备用。
+第3步（步骤3）：将绿豆芽放入锅中，大火煮60秒。豆芽捞出，过凉水，放入盘中备用。
+第4步（步骤4）：黄瓜切丝放入盘中备用，可和豆芽丢一起。
+第5步（步骤5）：处理面筋，单独丢一个盘中。
+第6步（步骤6）：肉切细条状，加入淀粉与刚刚碗中的鸡蛋清、胡椒粉，顺时针拌匀。
+第7步（步骤7）：加入食用油，锅热倒出。倒入处理好的肉，翻炒均匀至变色，倒入碗中备用。
+第8步（步骤8）：趁锅热，加入20g食用油，倒入葱白、蒜爆炒出香。
+第9步（步骤9）：加入河粉，淋入老抽提色，翻炒均匀后再加入河粉炒料，继续翻炒。
+第10步（步骤10）：河粉即将透明时，放入炒制好的肉丝与面筋，并加入生抽提鲜，简单翻炒两次。
+第11步（步骤11）：加入豆芽与黄瓜丝，翻炒至河粉完全透明。关火！
+第12步（步骤12）：撒入葱叶点缀，把锅端起。倒入盘中，开始干饭。",step_by_step,medium,hybrid_traditional,201004088,"{""generated_by"": ""graph_based"", ""step_count"": 12}"
+简易红烧肉属于什么分类？,简易红烧肉属于荤菜。,simple_fact,easy,hybrid_traditional,201003002,"{""generated_by"": ""graph_based"", ""category"": ""荤菜""}"
+手工水饺的准备时间是多久？,手工水饺的准备时间是2小时30分钟。,attribute_query,easy,hybrid_traditional,201004017,"{""generated_by"": ""graph_based"", ""attribute"": ""prep_time""}"
+草莓酱和油泼辣子在烹饪时间和难度上有什么不同？,草莓酱的烹饪时间约为20分钟，难度为2.0；而油泼辣子的烹饪时间约为10分钟，难度为3.0。因此，草莓酱烹饪时间更长但难度更低，油泼辣子烹饪时间更短但难度更高。,comparison,hard,combined,201000866;201000838,"{""generated_by"": ""graph_based"", ""category"": ""调料""}"
+血浆鸭属于什么分类？,血浆鸭属于荤菜。,simple_fact,easy,hybrid_traditional,201003174,"{""generated_by"": ""graph_based"", ""category"": ""荤菜""}"
+南派红烧肉的准备时间是多久？,南派红烧肉的准备时间是约20分钟（切肉、切配料、焯水准备）。,attribute_query,easy,hybrid_traditional,201002978,"{""generated_by"": ""graph_based"", ""attribute"": ""prep_time""}"
+菌菇炖乳鸽的烹饪时间是多久？,菌菇炖乳鸽的烹饪时间是高压锅30分钟 / 瓦罐40-60分钟。,attribute_query,easy,hybrid_traditional,201003977,"{""generated_by"": ""graph_based"", ""attribute"": ""cook_time""}"
+生抽和香醋常常一起出现在哪些菜里？,生抽和香醋常常一起出现在这些菜中：凉拌鸡丝、糖醋排骨、老妈蹄花、荔枝肉、凉皮、油醋爆蛋、手撕包菜、虎皮青椒。,multi_hop,hard,graph_rag,201002203;201002937;201003048;201003138;201003534;201004956;201005401;201005609,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""生抽"", ""香醋""], ""recipe_count"": 8}"
+请问葱烧海参是哪一类菜？,葱烧海参是水产。,simple_fact,easy,hybrid_traditional,201000365,"{""generated_by"": ""graph_based"", ""category"": ""水产""}"
+为什么扬州炒饭要用铲子快速砸击米饭并翻炒？,因为扬州炒饭需要米饭粒粒分明，用铲子快速砸击可以打散结块的米饭，使每粒米受热均匀，同时避免米饭粘锅或炒碎。,causal,hard,hybrid_traditional,201004478,"{""generated_by"": ""graph_based"", ""step_count"": 17}"
+龟苓膏的难度是几星？,龟苓膏的难度是2星。,attribute_query,easy,hybrid_traditional,201001136,"{""generated_by"": ""graph_based"", ""attribute"": ""difficulty""}"
+如何制作金针菇汤？请分步骤说明。,"金针菇汤的制作步骤如下：
+第1步（步骤1）：金针菇徒手掰散，越散越好，洗净备用
+第2步（步骤2）：用菜刀或者水果刀将上述金针菇切段，长度不宜超过5 cm
+第3步（步骤3）：将金针菇放入锅中，加水没过约食材总高度1.1倍，沸腾后等待3分钟
+第4步（步骤4）：加入味精和食盐并搅拌
+第5步（步骤5）：继续加热约30秒，关火装盘",step_by_step,medium,hybrid_traditional,201003862,"{""generated_by"": ""graph_based"", ""step_count"": 5}"
+在难度和烹饪时间上，芋泥雪媚娘和咖啡椰奶冻有什么主要差异？,芋泥雪媚娘的难度为5.0，烹饪时间约90分钟（包括煮芋头40分钟、蒸糯米团30分钟和冷藏1小时）；而咖啡椰奶冻的难度为4.0，烹饪时间仅1分钟。因此，芋泥雪媚娘难度更高且耗时更长，咖啡椰奶冻则更简单快捷。,comparison,hard,combined,201001048;201000894,"{""generated_by"": ""graph_based"", ""category"": ""甜品""}"
+尖叫牛蛙的份量是多少？,尖叫牛蛙的份量是1份。,attribute_query,easy,hybrid_traditional,201002528,"{""generated_by"": ""graph_based"", ""attribute"": ""servings""}"
+洋葱炒猪肉属于什么分类？,洋葱炒猪肉属于荤菜。,simple_fact,easy,hybrid_traditional,201001780,"{""generated_by"": ""graph_based"", ""category"": ""荤菜""}"
+茄子炖土豆的准备时间是多久？,茄子炖土豆的准备时间是约10分钟（洗菜、切菜、拍蒜）。,attribute_query,easy,hybrid_traditional,201005092,"{""generated_by"": ""graph_based"", ""attribute"": ""prep_time""}"
+为什么枝竹羊腩煲要先将羊腩焯水再炒制？,羊腩冷水下锅焯水可以去除血水和腥膻味，使肉质更干净。焯水后炒制能让表面金黄，锁住肉汁，同时增加焦香风味，为后续炖煮打好基础。,causal,hard,hybrid_traditional,201002697,"{""generated_by"": ""graph_based"", ""step_count"": 17}"
+请详细介绍洋葱炒鸡蛋的做法。,"洋葱炒鸡蛋的制作步骤如下：
+第1步（步骤1）：鸡蛋打入大碗中，加入洋葱片、盐后搅拌60秒
+第2步（步骤2）：起锅烧油，倒入鸡蛋，一面煎炸30-45秒，翻面继续翻炒，反复2-3分钟后撒上料酒出锅
+第3步（步骤3）：鸡蛋装盘，撒上葱花",step_by_step,medium,hybrid_traditional,201005471,"{""generated_by"": ""graph_based"", ""step_count"": 3}"
+如何制作小炒藕丁？请分步骤说明。,"小炒藕丁的制作步骤如下：
+第1步（步骤1）：大葱、小米辣切小段，备用
+第2步（步骤2）：莲藕去皮，切成不超过3cm的小块，放入水中备用（防止氧化发黑）
+第3步（步骤3）：取炒锅，锅内放入500ml凉水，煮沸
+第4步（步骤4）：将藕丁下入沸水中，焯水2分钟后，取出放入盘中备用
+第5步（步骤5）：将锅中水倒掉后，将锅加热干燥，加入10-15ml食用油
+第6步（步骤6）：待油温升高后，下入葱花，小米辣爆香
+第7步（步骤7）：将处理好的藕丁下入锅中，大火翻炒
+第8步（步骤8）：加入生抽、老抽、耗油
+第9步（步骤9）：翻炒2分钟即可出锅",step_by_step,medium,hybrid_traditional,201005366,"{""generated_by"": ""graph_based"", ""step_count"": 9}"
+热干面的难度是几星？,热干面的难度是3星。,attribute_query,easy,hybrid_traditional,201004152,"{""generated_by"": ""graph_based"", ""attribute"": ""difficulty""}"
+金菲士和酒酿（醪糟）在烹饪时间上有何不同？,金菲士的烹饪时间仅为2分钟，属于快速制作的饮料；而酒酿（醪糟）需要24-48小时发酵，时间较长。两者在时间投入上差异显著，金菲士适合即时饮用，酒酿则需提前准备。,comparison,hard,combined,201001415;201001370,"{""generated_by"": ""graph_based"", ""category"": ""饮料""}"
+有哪些菜同时用到食用油和香叶？,食用油和香叶常常一起出现在这些菜中：烤鱼、鳊鱼炖豆腐、冷吃兔、台式卤肉饭、咖喱肥牛、啤酒鸭、湖南家常红烧肉、红烧猪蹄。,multi_hop,hard,graph_rag,201000223;201000472;201001454;201002282;201002309;201002327;201002837;201002957,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""食用油"", ""香叶""], ""recipe_count"": 8}"
+番茄牛肉蛋花汤属于什么分类？,番茄牛肉蛋花汤属于汤类。,simple_fact,easy,hybrid_traditional,201003726,"{""generated_by"": ""graph_based"", ""category"": ""汤类""}"
+为什么无厨师机蜂蜜面包在第二次醒发时可以放入冰箱冷藏过夜？,放入冰箱冷藏过夜可以延长发酵时间，使面团在低温下缓慢发酵，有助于形成更丰富的风味和更好的面筋结构，同时方便用户灵活安排烘焙时间，不会过度发酵。,causal,hard,hybrid_traditional,201000953,"{""generated_by"": ""graph_based"", ""step_count"": 13}"
+为什么台式卤肉饭中的五花肉要切成0.7cm×0.7cm×2.5cm的细长条？,这样切是为了在炖煮时更容易软烂入味。细长条比大块肉受热面积更大，能更快炖透，同时保持形状不散，口感软糯而不腻。,causal,hard,hybrid_traditional,201002282,"{""generated_by"": ""graph_based"", ""step_count"": 13}"
+速冻馄饨和半成品意面在烹饪时间和难度上有什么不同？,速冻馄饨的烹饪时间为55分钟，难度为2.0；半成品意面的烹饪时间仅为2分钟，难度为1.0。因此，半成品意面比速冻馄饨烹饪时间更短、难度更低。,comparison,hard,combined,201003631;201003558,"{""generated_by"": ""graph_based"", ""category"": ""半成品""}"
+请问咕噜肉的原料有哪些？,制作咕噜肉需要以下主要食材：青椒、水、梅头猪肉、蒜蓉、茄汁、盐、生抽、生粉（裹粉用）、油、白醋、白砂糖、生粉、罐头菠萝片。,entity_relation,medium,hybrid_traditional,201001500,"{""generated_by"": ""graph_based"", ""ingredient_count"": 13}"
+能同时使用土豆和生抽的菜有哪些？,土豆和生抽常常一起出现在这些菜中：粉蒸肉、土豆炖排骨、干煸仔鸡、新疆大盘鸡、瘦肉土豆片、地三鲜、酸辣土豆丝、陕北熬豆角。,multi_hop,hard,graph_rag,201001891;201002369;201002575;201002647;201002920;201004898;201005195;201005226,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""土豆"", ""生抽""], ""recipe_count"": 8}"
+为什么炸鲜奶需要先放冰箱冷却1小时？,炸鲜奶的奶糊在加热后变得粘稠但尚未定型，直接切块容易散开。放入冰箱冷却1小时可以使奶糊充分凝固，形成有弹性的固体，这样后续切条和裹面包糠时不易变形，油炸时也能保持形状完整，外酥里嫩。,causal,hard,hybrid_traditional,201000979,"{""generated_by"": ""graph_based"", ""step_count"": 13}"
+有哪些菜同时用到料酒和油？,料酒和油常常一起出现在这些菜中：红烧鱼、红烧鱼头、红烧鲤鱼、葱油、新疆大盘鸡、南派红烧肉、西红柿土豆炖牛肉、老友猪肉粉。,multi_hop,hard,graph_rag,201000073;201000100;201000127;201000815;201002647;201002978;201003196;201004709,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""料酒"", ""油""], ""recipe_count"": 8}"
+有哪些菜同时用到料酒和鸡蛋？,料酒和鸡蛋常常一起出现在这些菜中：糖醋鲤鱼、蛏抱蛋、小酥肉、山西过油肉、糖醋里脊、肉饼炖蛋、水煮牛肉、洋葱炒鸡蛋。,multi_hop,hard,graph_rag,201000290;201000411;201001606;201001644;201001916;201001934;201002797;201005471,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""料酒"", ""鸡蛋""], ""recipe_count"": 8}"
+辣椒炒肉的难度是几星？,辣椒炒肉的难度是3星。,attribute_query,easy,hybrid_traditional,201002035,"{""generated_by"": ""graph_based"", ""attribute"": ""difficulty""}"
+陈皮排骨汤属于什么分类？,陈皮排骨汤属于汤类。,simple_fact,easy,hybrid_traditional,201004002,"{""generated_by"": ""graph_based"", ""category"": ""汤类""}"
+炸酱面这道菜的分类是什么？,炸酱面的分类是主食。,simple_fact,easy,hybrid_traditional,201004135,"{""generated_by"": ""graph_based"", ""category"": ""主食""}"
+如何制作小炒黄牛肉？请分步骤说明。,"小炒黄牛肉的制作步骤如下：
+第1步（步骤1）：牛里脊切成不超过3cm宽、3mm厚的薄片，倒入6ml酱油，用手抓匀备用
+第2步（步骤2）：芹菜切成不超过5cm的小段，备用
+第3步（步骤3）：小米椒切成丝状，备用
+第4步（步骤4）：野山椒切成颗粒，备用
+第5步（步骤5）：香菜切成不超过3cm的小段，备用
+第6步（步骤6）：热锅，锅内放入15ml食用油，大火等待30秒让油温升高
+第7步（步骤7）：放入小米椒和野山椒爆香
+第8步（步骤8）：放入牛里脊和芹菜，然后大火翻炒1分钟
+第9步（步骤9）：关火，撒上香菜，盛盘",step_by_step,medium,hybrid_traditional,201002511,"{""generated_by"": ""graph_based"", ""step_count"": 9}"
+请问日式肥牛丼饭的原料有哪些？,制作日式肥牛丼饭需要以下主要食材：味淋、酱油、老抽、料酒、糖、白芝麻、水、耗油、清酒、洋葱、葱、肥牛、出汁。,entity_relation,medium,hybrid_traditional,201004544,"{""generated_by"": ""graph_based"", ""ingredient_count"": 13}"
+请问小炒鸡肝的原料有哪些？,制作小炒鸡肝需要以下主要食材：五香粉、姜、料酒、生鸡肝、大葱、烧烤料或孜然粉、食用油、蒜苗、食用盐、芝麻、鸡精、胡椒粉。,entity_relation,medium,hybrid_traditional,201002486,"{""generated_by"": ""graph_based"", ""ingredient_count"": 12}"
+芋泥雪媚娘和炸鲜奶在烹饪时间上有什么差异？,芋泥雪媚娘的烹饪时间约为90分钟，包括煮芋头40分钟、蒸糯米团30分钟和冷藏1小时；而炸鲜奶仅需10分钟。因此，芋泥雪媚娘的制作时间远长于炸鲜奶。,comparison,hard,combined,201001048;201000979,"{""generated_by"": ""graph_based"", ""category"": ""甜品""}"
+韭菜盒子的制作步骤是什么？,"韭菜盒子的制作步骤如下：
+第1步（步骤1）：将面粉放入大碗中，加入水，搅拌成光滑的面团，静置30分钟。
+第2步（步骤2）：韭菜洗净切碎，加入打散的鸡蛋、5g盐，搅拌均匀。
+第3步（步骤3）：将面团分成小剂子，擀成薄圆饼，包入韭菜、虾仁、鸡蛋液。
+第4步（步骤4）：热锅，加入食用油，放入包好的韭菜盒子，煎至两面金黄，约3-4分钟。
+第5步（步骤5）：盛盘，稍凉后即可享用。",step_by_step,medium,hybrid_traditional,201004341,"{""generated_by"": ""graph_based"", ""step_count"": 5}"
+葱油和简易版炒糖色在烹饪时间和难度上有什么不同？,葱油的烹饪时间为20分钟，难度为3.0；而简易版炒糖色的烹饪时间仅为8-10分钟，但难度为4.0。因此，葱油耗时更长但难度较低，炒糖色耗时短但难度更高。,comparison,hard,combined,201000815;201000794,"{""generated_by"": ""graph_based"", ""category"": ""调料""}"
+为什么葱油桂鱼要在鱼身刀口塞入姜片？,在鱼身刀口塞入姜片可以去腥增香。姜片中的姜辣素和挥发油能有效中和鱼腥味，同时在蒸制过程中，姜的香气渗入鱼肉，提升风味。此外，姜片还能防止鱼肉在蒸制时粘连，保持鱼形完整。,causal,hard,hybrid_traditional,201000337,"{""generated_by"": ""graph_based"", ""step_count"": 18}"
+为什么柱候牛腩要先用中小火炒冰糖至融化再炒牛肉？,因为冰糖融化后能包裹在牛腩表面，形成焦糖色，帮助牛肉上色，同时增加菜品的甜味和光泽。步骤中先炒冰糖再炒牛肉，是为了让糖色均匀附着，提升色泽和风味。,causal,hard,hybrid_traditional,201002733,"{""generated_by"": ""graph_based"", ""step_count"": 22}"
+金菲士和冬瓜茶在烹饪时间上有什么不同？,金菲士的烹饪时间很短，仅需2分钟，而冬瓜茶需要熬制1~2小时，时间差异很大。金菲士主要使用蔗糖糖浆、苏打气泡水等快速混合，冬瓜茶则需要长时间熬煮冰糖和冬瓜来提取风味。,comparison,hard,combined,201001415;201001175,"{""generated_by"": ""graph_based"", ""category"": ""饮料""}"
+有哪些菜同时用到蚝油和酱油？,蚝油和酱油常常一起出现在这些菜中：红烧鱼、白灼虾、辣椒炒肉、广式萝卜牛腩、皮蛋瘦肉粥、西红柿鸡蛋挂面、凉拌油麦菜、凉拌黄瓜。,multi_hop,hard,graph_rag,201000073;201000272;201002035;201002601;201003745;201004746;201004827;201004885,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""蚝油"", ""酱油""], ""recipe_count"": 8}"
+孜然牛肉的准备时间是多久？,孜然牛肉的准备时间是30分钟（含腌肉）。,attribute_query,easy,hybrid_traditional,201001550,"{""generated_by"": ""graph_based"", ""attribute"": ""prep_time""}"
+为什么卤菜做好后要放入冰箱冷藏再切片？,卤好的牛腱子肉内部含有大量胶原蛋白和汤汁，热的时候肉质松软，直接切片容易散碎。放入冰箱冷藏后，胶原蛋白凝固，肉质紧实成型，切片时能保持完整，口感也更Q弹有嚼劲。,causal,hard,hybrid_traditional,201002224,"{""generated_by"": ""graph_based"", ""step_count"": 14}"
+清蒸鳜鱼需要哪些主要食材？,制作清蒸鳜鱼需要以下主要食材：红辣椒、小葱、食用油、大葱、鳜鱼、姜片、生抽。,entity_relation,medium,hybrid_traditional,201002821,"{""generated_by"": ""graph_based"", ""ingredient_count"": 7}"
+为什么地三鲜中土豆和茄子需要分别煎炸？,因为土豆和茄子的质地和含水量不同，所需烹饪时间不同。土豆较硬，需要煎炸约3分钟至8分熟；茄子较软，只需煎炸约40秒至7分熟。分开煎炸可以确保两者达到最佳口感，避免一起下锅导致土豆未熟或茄子过烂。,causal,hard,hybrid_traditional,201004898,"{""generated_by"": ""graph_based"", ""step_count"": 16}"
+姜葱捞鸡这道菜的分类是什么？,姜葱捞鸡的分类是荤菜。,simple_fact,easy,hybrid_traditional,201002434,"{""generated_by"": ""graph_based"", ""category"": ""荤菜""}"
+广式萝卜牛腩的难度是几星？,广式萝卜牛腩的难度是4星。,attribute_query,easy,hybrid_traditional,201002601,"{""generated_by"": ""graph_based"", ""attribute"": ""difficulty""}"
+香煎五花肉这道菜的分类是什么？,香煎五花肉的分类是荤菜。,simple_fact,easy,hybrid_traditional,201003395,"{""generated_by"": ""graph_based"", ""category"": ""荤菜""}"
+请问速冻馄饨的原料有哪些？,制作速冻馄饨需要以下主要食材：鸡精、香菜、盐、香油、速冻馄饨、水、胡椒粉。,entity_relation,medium,hybrid_traditional,201003631,"{""generated_by"": ""graph_based"", ""ingredient_count"": 7}"
+空气炸锅羊排的制作步骤是什么？,"空气炸锅羊排的制作步骤如下：
+第1步（步骤1）：羊排放入碗中清水洗净血水
+第2步（步骤2）：羊排用厨房纸吸干水分，双面抹上黑椒混合调味料、蒜蓉酱，静置腌制20分钟
+第3步（步骤3）：锡纸碗放上烤架，羊排放在烤架上，撒上罗勒碎，黄油或烧烤料放在羊排上，空气炸锅180°烤10分钟
+第4步（步骤4）：羊排翻面，撒上罗勒碎，黄油（从锡纸碗里舀上来）或烧烤料放在羊排上，空气炸锅180°再烤5分钟",step_by_step,medium,hybrid_traditional,201003658,"{""generated_by"": ""graph_based"", ""step_count"": 4}"
+能同时使用生抽和蒜瓣的菜有哪些？,生抽和蒜瓣常常一起出现在这些菜中：红烧鱼头、杀猪菜、蒜苔炒肉末、干煸仔鸡、炒河粉、凉拌木耳、包菜炒鸡蛋粉丝、干锅花菜。,multi_hop,hard,graph_rag,201000100;201001698;201001965;201002575;201004088;201005312;201005342;201005383,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""生抽"", ""蒜瓣""], ""recipe_count"": 8}"
+如何制作土豆炖排骨？请分步骤说明。,"土豆炖排骨的制作步骤如下：
+第1步（步骤1）：土豆两个滚刀切片，姜片切片
+第2步（步骤2）：排骨 750g 冷水下锅，加入姜片、葱段、料酒焯水 2 分钟，焯干水后捞出清洗干净（一定要用热水，不能用冷水）
+第3步（步骤3）：热锅凉油，将白糖倒入锅中，翻炒至融化为焦糖色
+第4步（步骤4）：加入排骨煎至两面金黄，让排骨裹满焦糖
+第5步（步骤5）：加入干辣椒、八角、花椒、桂皮、姜片、10ml 生抽、5ml 老抽、5ml 料酒、5ml 蚝油、5ml 黄豆酱，大火翻炒均匀
+第6步（步骤6）：大火翻炒均匀后加入 700ml 开水，大火烧开后转小火焖煮 1 小时
+第7步（步骤7）：最后加入土豆煮 10 分钟就可以出锅啦（喜欢吃青红椒的也可以按自己喜好加入）",step_by_step,medium,hybrid_traditional,201002369,"{""generated_by"": ""graph_based"", ""step_count"": 7}"
+小酥肉的制作步骤是什么？,"小酥肉的制作步骤如下：
+第1步（步骤1）：老姜切丝，小葱不用切，加入料酒和清水，用手捏揉5分钟制成葱姜水。
+第2步（步骤2）：猪肉去皮洗净，切成长8-10厘米、厚1.5厘米的肉条。
+第3步（步骤3）：肉条中加入盐、十三香、胡椒粉、味精、鸡精、花椒碎、花椒粒、生抽和葱姜水，抓匀揉制10分钟至肉吸收水分并粘手，封保鲜膜冷藏静置30分钟。
+第4步（步骤4）：将面粉、红薯淀粉和鸡蛋清加入腌好的肉中，揉制15分钟至均匀无干粉。
+第5步（步骤5）：锅中倒油，油面高度3厘米以上，大火加热至150°C后转小火，将肉条逐条下锅初炸3-5分钟至微黄定型，捞出沥油。
+第6步（步骤6）：油温升至180°C，放入初炸好的肉条复炸至金黄色，捞出沥油即可。",step_by_step,medium,hybrid_traditional,201001606,"{""generated_by"": ""graph_based"", ""step_count"": 6}"
+为什么凉拌豆腐要先将豆腐煮1-2分钟？,煮豆腐可以去除豆腥味，并使豆腐口感更紧实，避免后续拌制时易碎，同时更好地吸收酱汁味道。,causal,hard,hybrid_traditional,201004841,"{""generated_by"": ""graph_based"", ""step_count"": 13}"
+排骨苦瓜汤和朱雀汤在烹饪时间上有什么差异？,排骨苦瓜汤的烹饪时间较长，使用汤锅需要120-240分钟，使用电压力锅需要45分钟；而朱雀汤只需2分钟即可完成。因此，排骨苦瓜汤比朱雀汤耗时更长，更适合有时间慢慢炖煮的场合，朱雀汤则适合快速制作。,comparison,hard,combined,201003902;201003931,"{""generated_by"": ""graph_based"", ""category"": ""汤类""}"
+酱排骨属于什么分类？,酱排骨属于荤菜。,simple_fact,easy,hybrid_traditional,201003296,"{""generated_by"": ""graph_based"", ""category"": ""荤菜""}"
+有哪些菜同时用到姜和油？,姜和油常常一起出现在这些菜中：红烧鱼、红烧鱼头、红烧鲤鱼、小龙虾、葱油、姜葱捞鸡、南派红烧肉、西红柿土豆炖牛肉。,multi_hop,hard,graph_rag,201000073;201000100;201000127;201000160;201000815;201002434;201002978;201003196,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""姜"", ""油""], ""recipe_count"": 8}"
+如何制作白灼虾？请分步骤说明。,"白灼虾的制作步骤如下：
+第1步（步骤1）：洋葱切小块，姜切片，平铺平底锅。
+第2步（步骤2）：活虾冲洗一下（去除虾线、剪刀减掉虾腿虾须子都是可选操作），控水，铺在平底锅的洋葱、姜片之上。
+第3步（步骤3）：锅内倒入料酒，盖上锅盖，中火1分钟，小火5分钟，关火5分钟。
+第4步（步骤4）：制作蘸料：葱切成葱花、蒜切碎、倒入酱油、芝麻、香醋，搅拌之。
+第5步（步骤5）：油烧热，淋入蘸料。
+第6步（步骤6）：虾出锅，用干净的盘子装好。",step_by_step,medium,hybrid_traditional,201000272,"{""generated_by"": ""graph_based"", ""step_count"": 6}"
+有哪些菜同时用到蒜和酱油？,蒜和酱油常常一起出现在这些菜中：清蒸生蚝、白灼虾、尖椒炒牛肉、青椒土豆炒肉、酸辣蕨根粉、凉拌油麦菜、凉拌黄瓜、茄子炖土豆。,multi_hop,hard,graph_rag,201000059;201000272;201001630;201003355;201004316;201004827;201004885;201005092,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""蒜"", ""酱油""], ""recipe_count"": 8}"
+酱排骨需要哪些主要食材？,制作酱排骨需要以下主要食材：排骨、食用油、生抽、老抽、小米椒、蒜、白砂糖、蚝油、姜、料酒、五香粉。,entity_relation,medium,hybrid_traditional,201003296,"{""generated_by"": ""graph_based"", ""ingredient_count"": 11}"
+制作西红柿豆腐汤羹需要准备什么食材？,制作西红柿豆腐汤羹需要以下主要食材：香葱、豆腐、鸡精、淀粉、开水、姜、盐、西红柿、食用油、鸡蛋。,entity_relation,medium,hybrid_traditional,201005653,"{""generated_by"": ""graph_based"", ""ingredient_count"": 10}"
+简易版炒糖色需要哪些主要食材？,制作简易版炒糖色需要以下主要食材：冰糖、开水、油。,entity_relation,medium,hybrid_traditional,201000794,"{""generated_by"": ""graph_based"", ""ingredient_count"": 3}"
+榄菜肉末四季豆这道菜的分类是什么？,榄菜肉末四季豆的分类是素菜。,simple_fact,easy,hybrid_traditional,201005449,"{""generated_by"": ""graph_based"", ""category"": ""素菜""}"
+蔗糖糖浆和糖醋汁在烹饪时间和难度上有什么不同？,蔗糖糖浆的烹饪时间为0分钟，难度为1.0；而糖醋汁的烹饪时间为5-10分钟，难度为2.0。因此，糖醋汁需要更长的烹饪时间和更高的难度，而蔗糖糖浆则无需烹饪且难度较低。,comparison,hard,combined,201000877;201000805,"{""generated_by"": ""graph_based"", ""category"": ""调料""}"
+为什么奶酪培根通心粉要分四次加入牛奶，而不是一次性加入？,分次加入牛奶并每次搅拌5秒，是为了让面粉充分吸收液体，避免结块，从而形成顺滑的奶酪酱。如果一次性加入，面粉容易结块，导致酱汁不均匀，影响口感。,causal,hard,hybrid_traditional,201002391,"{""generated_by"": ""graph_based"", ""step_count"": 14}"
+香干芹菜炒肉的烹饪时间是多久？,香干芹菜炒肉的烹饪时间是约8-10分钟（炒制）。,attribute_query,easy,hybrid_traditional,201003372,"{""generated_by"": ""graph_based"", ""attribute"": ""cook_time""}"
+咖啡椰奶冻和芋泥雪媚娘在烹饪时间上有什么不同？,咖啡椰奶冻的烹饪时间仅为1分钟，非常快捷；而芋泥雪媚娘需要约90分钟，包括煮芋头40分钟、蒸糯米团30分钟和冷藏1小时，耗时较长。,comparison,hard,combined,201000894;201001048,"{""generated_by"": ""graph_based"", ""category"": ""甜品""}"
+猪肉烩酸菜的烹饪时间是多久？,猪肉烩酸菜的烹饪时间是1.5-2小时。,attribute_query,easy,hybrid_traditional,201001808,"{""generated_by"": ""graph_based"", ""attribute"": ""cook_time""}"
+微波炉腊肠煲仔饭这道菜的分类是什么？,微波炉腊肠煲仔饭的分类是主食。,simple_fact,easy,hybrid_traditional,201004446,"{""generated_by"": ""graph_based"", ""category"": ""主食""}"
+速冻水饺属于什么分类？,速冻水饺属于半成品。,simple_fact,easy,hybrid_traditional,201003618,"{""generated_by"": ""graph_based"", ""category"": ""半成品""}"
+糖醋汁这道菜的分类是什么？,糖醋汁的分类是调料。,simple_fact,easy,hybrid_traditional,201000805,"{""generated_by"": ""graph_based"", ""category"": ""调料""}"
+盐和香醋常常一起出现在哪些菜里？,盐和香醋常常一起出现在这些菜中：凉拌鸡丝、宫保鸡丁、老妈蹄花、凉皮、酸辣蕨根粉、油醋爆蛋、手撕包菜、虎皮青椒。,multi_hop,hard,graph_rag,201002203;201002454;201003048;201003534;201004316;201004956;201005401;201005609,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""盐"", ""香醋""], ""recipe_count"": 8}"
+白糖和醋常常一起出现在哪些菜里？,白糖和醋常常一起出现在这些菜中：糖醋里脊、鱼香肉丝、口水鸡、凉粉、凉拌油麦菜、凉拌豆腐、凉拌金针菇、凉拌木耳。,multi_hop,hard,graph_rag,201001916;201002073;201002255;201004407;201004827;201004841;201004863;201005312,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""白糖"", ""醋""], ""recipe_count"": 8}"
+黄焖鸡的准备时间是多久？,黄焖鸡的准备时间是约20分钟（含泡干香菇、切配）。,attribute_query,easy,hybrid_traditional,201002122,"{""generated_by"": ""graph_based"", ""attribute"": ""prep_time""}"
+酸辣土豆丝的烹饪时间是多久？,酸辣土豆丝的烹饪时间是5分钟。,attribute_query,easy,hybrid_traditional,201005195,"{""generated_by"": ""graph_based"", ""attribute"": ""cook_time""}"
+请问蒸花卷的原料有哪些？,制作蒸花卷需要以下主要食材：冷冻花卷、水。,entity_relation,medium,hybrid_traditional,201000696,"{""generated_by"": ""graph_based"", ""ingredient_count"": 2}"
+制作耙耙柑茶需要准备什么食材？,制作耙耙柑茶需要以下主要食材：茉莉绿茶、耙耙柑、蔗糖糖浆、冰块。,entity_relation,medium,hybrid_traditional,201001343,"{""generated_by"": ""graph_based"", ""ingredient_count"": 4}"
+为什么粉蒸肉要腌制后再裹蒸肉米粉？,腌制时加入生抽、老抽、料酒、豆瓣酱等调味料，能让五花肉充分入味并去腥；同时，腌制后肉表面湿润，更容易粘附蒸肉米粉，确保每片肉均匀裹粉，蒸制后口感更佳。,causal,hard,hybrid_traditional,201001891,"{""generated_by"": ""graph_based"", ""step_count"": 13}"
+制作小炒黄牛肉需要准备什么食材？,制作小炒黄牛肉需要以下主要食材：食用油、酱油、牛里脊、小米椒、香菜、芹菜、野山椒。,entity_relation,medium,hybrid_traditional,201002511,"{""generated_by"": ""graph_based"", ""ingredient_count"": 7}"
+大葱和姜常常一起出现在哪些菜里？,大葱和姜常常一起出现在这些菜中：红烧鱼头、红烧鲤鱼、糖醋鲤鱼、猪肉烩酸菜、萝卜炖羊排、小炒鸡肝、无骨鸡爪、老式锅包肉。,multi_hop,hard,graph_rag,201000100;201000127;201000290;201001808;201001944;201002486;201002673;201003076,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""大葱"", ""姜""], ""recipe_count"": 8}"
+如何制作炒滑蛋？请分步骤说明。,"炒滑蛋的制作步骤如下：
+第1步（步骤1）：鸡蛋加入牛奶以及5ml食用油搅拌均匀，备用
+第2步（步骤2）：大火烧热平底锅约30秒，加入5ml食用油
+第3步（步骤3）：烧30秒后转小火，并且放入搅拌好的鸡蛋
+第4步（步骤4）：在锅中静置5秒后，用锅铲将蛋液从边缘缓慢推向中间
+第5步（步骤5）：翻炒至鸡蛋大致凝固后关火，装盘",step_by_step,medium,hybrid_traditional,201005481,"{""generated_by"": ""graph_based"", ""step_count"": 5}"
+有哪些菜同时用到大葱和生抽？,大葱和生抽常常一起出现在这些菜中：红烧鱼头、烤鱼、乡村啤酒鸭、新疆大盘鸡、无骨鸡爪、清蒸鳜鱼、蒸卤面、小炒藕丁。,multi_hop,hard,graph_rag,201000100;201000223;201001428;201002647;201002673;201002821;201004232;201005366,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""大葱"", ""生抽""], ""recipe_count"": 8}"
+食用油和香葱常常一起出现在哪些菜里？,食用油和香葱常常一起出现在这些菜中：清蒸鲈鱼、血浆鸭、勾芡香菇汤、昂刺鱼豆腐汤、玉米排骨汤、红烧冬瓜、蚝油三鲜菇、西红柿豆腐汤羹。,multi_hop,hard,graph_rag,201000257;201003174;201003888;201003916;201003939;201005538;201005626;201005653,"{""generated_by"": ""graph_based"", ""ingredient_pair"": [""食用油"", ""香葱""], ""recipe_count"": 8}"
+为什么凉拌金针菇的金针菇要先煮1-2分钟，而不是直接凉拌？,因为金针菇含有少量秋水仙碱，生食可能引起不适，且生金针菇口感较韧、不易消化。通过短时间焯水（煮1-2分钟）可以去除有害物质，同时使金针菇变软，更易吸收调味汁，提升口感和安全性。,causal,hard,hybrid_traditional,201004863,"{""generated_by"": ""graph_based"", ""step_count"": 13}"
+陈皮排骨汤的制作步骤是什么？,"陈皮排骨汤的制作步骤如下：
+第1步（步骤1）：排骨用热水过一遍，去血水
+第2步（步骤2）：陈皮、麦冬、玉竹、石斛和西洋参冲洗干净
+第3步（步骤3）：煲汤盅洗干净
+第4步（步骤4）：打开煲汤盅，先放入排骨在底部，然后依次放入陈皮、麦冬、玉竹、石斛和西洋参
+第5步（步骤5）：加入热水进煲汤盅，水不宜太满
+第6步（步骤6）：煲汤容器加入水，炖煮1.5小时
+第7步（步骤7）：加入食盐，趁热饮用",step_by_step,medium,hybrid_traditional,201003873,"{""generated_by"": ""graph_based"", ""step_count"": 7}"

@@ -1,0 +1,80 @@
+{
+  "total_samples": 100,
+  "question_type_distribution": {
+    "step_by_step": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "multi_hop": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "entity_relation": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "attribute_query": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "causal": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "simple_fact": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "comparison": {
+      "count": 10,
+      "percentage": 10.0
+    }
+  },
+  "difficulty_distribution": {
+    "medium": {
+      "count": 30,
+      "percentage": 30.0
+    },
+    "hard": {
+      "count": 40,
+      "percentage": 40.0
+    },
+    "easy": {
+      "count": 30,
+      "percentage": 30.0
+    }
+  },
+  "expected_strategy_distribution": {
+    "hybrid_traditional": {
+      "count": 75,
+      "percentage": 75.0
+    },
+    "graph_rag": {
+      "count": 15,
+      "percentage": 15.0
+    },
+    "combined": {
+      "count": 10,
+      "percentage": 10.0
+    }
+  },
+  "length_statistics": {
+    "question_length": {
+      "mean": 16.03,
+      "min": 10,
+      "max": 38,
+      "std": 4.754902732969414
+    },
+    "answer_length": {
+      "mean": 75.62,
+      "min": 8,
+      "max": 453,
+      "std": 83.49212897034067
+    }
+  },
+  "quality_metrics": {
+    "fluent_questions_ratio": 98.0,
+    "fluent_answers_ratio": 97.0,
+    "valid_labels_ratio": 100.0
+  }
+}

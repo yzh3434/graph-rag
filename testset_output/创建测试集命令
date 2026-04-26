@@ -1,0 +1,2 @@
+python -m eval.testset_generator --num_samples 100 --output_dir ./testset_output --seed 42
+位于C9文件夹下

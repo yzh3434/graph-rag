@@ -12,12 +12,9 @@ venv/
 .idea/
 .claude/
 
-# 输出/数据/缓存
-eval_output/
-testset_output/
-
 # 大文件
 *.pkl
 *.pt
 *.ckpt
 *.bin
+*.log
