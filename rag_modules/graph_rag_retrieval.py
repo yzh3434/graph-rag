@@ -601,6 +601,7 @@ class GraphRAGRetrieval:
                     "path_type": path.path_type,
                     "node_count": len(path.nodes),
                     "relationship_count": len(path.relationships),
+                    "node_id": path.nodes[0].get("id", "") if path.nodes else "",
                     "recipe_name": path.nodes[0].get("name", "图结构结果") if path.nodes else "图结构结果"
                 }
             )
@@ -624,6 +625,7 @@ class GraphRAGRetrieval:
                 "relationship_count": len(subgraph.relationships),
                 "graph_density": subgraph.graph_metrics.get("density", 0.0),
                 "reasoning_chains": reasoning_chains,
+                "node_id": subgraph.central_nodes[0].get("nodeId", "") if subgraph.central_nodes else "",
                 "recipe_name": subgraph.central_nodes[0].get("name", "知识子图") if subgraph.central_nodes else "知识子图"
             }
         )
