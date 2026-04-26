@@ -357,6 +357,8 @@ def main():
                         help="只评测前 N 条（用于快速验证）")
     parser.add_argument("--skip_generation_eval", action="store_true",
                         help="跳过 Faithfulness / Answer Relevancy（只测检索+路由+延迟）")
+    parser.add_argument("--filter_question_type", type=str, default=None,
+                        help="只评测指定类型，多个用逗号分隔，如 multi_hop,comparison")
     parser.add_argument("--log_level", type=str, default="WARNING")
     parser.add_argument("--config_note", type=str, default="",
                         help="本次 run 的额外说明，写入 summary.json")
@@ -369,6 +371,11 @@ def main():
 
     print(f"[1/3] 加载 testset: {args.testset}")
     testset = load_testset(args.testset)
+    if args.filter_question_type:
+        wanted = {t.strip() for t in args.filter_question_type.split(",") if t.strip()}
+        before = len(testset)
+        testset = [s for s in testset if s.question_type in wanted]
+        print(f"      按问题类型过滤 {wanted}: {before} → {len(testset)} 条")
     if args.limit:
         testset = testset[: args.limit]
     print(f"      共 {len(testset)} 条样本\n")
