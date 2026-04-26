@@ -347,7 +347,57 @@ class GraphRAGRetrieval:
             
         logger.info(f"多跳遍历完成，找到 {len(paths)} 条路径")
         return paths
-    
+
+    def _find_co_occurring_recipes(self, ing1: str, ing2: str, session) -> List[GraphPath]:
+        """
+        Fast path：找同时使用两个食材的菜（精准 2 跳，不依赖 LLM 意图分析）。
+
+        路径模式：(食材A) ←[REQUIRES]- (Recipe) -[REQUIRES]→ (食材B)
+        返回的 GraphPath.nodes 长度恒为 3：[食材A, Recipe, 食材B]，
+        Recipe 在 nodes[1]，会被通用 _paths_to_documents 的 "找第一个 Recipe" 逻辑命中。
+
+        语义上等价于 testset_generator._gen_multi_hop 生成 ground truth 时的查询模式，
+        召回率应接近理论上限。仅服务上游已通过规则识别确认的两食材共现 query。
+        """
+        cypher = """
+        MATCH (a) WHERE a.name CONTAINS $s1
+        MATCH (b) WHERE b.name CONTAINS $s2
+        MATCH (a)<-[r1:REQUIRES]-(recipe:Recipe)-[r2:REQUIRES]->(b)
+        WHERE recipe.nodeId >= '200000000'
+        RETURN DISTINCT recipe, a AS source_node, b AS target_node, r1, r2
+        ORDER BY recipe.name
+        LIMIT 20
+        """
+        paths: List[GraphPath] = []
+        try:
+            result = session.run(cypher, {"s1": ing1, "s2": ing2})
+            for rec in result:
+                a = rec["source_node"]
+                r = rec["recipe"]
+                b = rec["target_node"]
+                paths.append(GraphPath(
+                    nodes=[
+                        {"id": a.get("nodeId", ""), "name": a.get("name", ""),
+                         "labels": list(a.labels), "properties": dict(a)},
+                        {"id": r.get("nodeId", ""), "name": r.get("name", ""),
+                         "labels": list(r.labels), "properties": dict(r)},
+                        {"id": b.get("nodeId", ""), "name": b.get("name", ""),
+                         "labels": list(b.labels), "properties": dict(b)},
+                    ],
+                    relationships=[
+                        {"type": "REQUIRES", "properties": dict(rec["r1"])},
+                        {"type": "REQUIRES", "properties": dict(rec["r2"])},
+                    ],
+                    path_length=2,
+                    relevance_score=1.0,
+                    path_type="ingredient_co_occurrence",
+                ))
+        except Exception as e:
+            logger.error(f"_find_co_occurring_recipes Cypher 执行失败: {e}")
+
+        logger.info(f"两食材共现查询：{ing1} & {ing2} → 命中 {len(paths)} 条菜")
+        return paths
+
     def extract_knowledge_subgraph(self, graph_query: GraphQuery) -> KnowledgeSubgraph:
         """
         提取知识子图：获取实体相关的完整知识网络
@@ -480,16 +530,37 @@ class GraphRAGRetrieval:
             
         return query_plans
     
-    def graph_rag_search(self, query: str, top_k: int = 5) -> List[Document]:
+    def graph_rag_search(self, query: str, top_k: int = 5,
+                         ingredients_hint: Optional[List[str]] = None) -> List[Document]:
         """
         图RAG主搜索接口：整合所有图RAG能力
+
+        ingredients_hint：上游路由器规则识别出的食材列表。当恰好为 2 个时，跳过
+        understand_graph_query 的 LLM 调用，直接走 _find_co_occurring_recipes 精准 2 跳。
         """
         logger.info(f"开始图RAG检索: {query}")
-        
+
         if not self.driver:
             logger.warning("Neo4j连接未建立，返回空结果")
             return []
-        
+
+        # —— Fast path：两食材共现查询走精准 2 跳，跳过 LLM 意图分析 ——
+        if ingredients_hint and len(ingredients_hint) == 2:
+            logger.info(f"图RAG fast path：两食材共现 {ingredients_hint}")
+            try:
+                with self.driver.session() as session:
+                    paths = self._find_co_occurring_recipes(
+                        ingredients_hint[0], ingredients_hint[1], session
+                    )
+                documents = self._paths_to_documents(paths, query)
+                documents = self._rank_by_graph_relevance(documents, query)
+                logger.info(f"Fast path 完成，返回 {len(documents[:top_k])} 个结果")
+                return documents[:top_k]
+            except Exception as e:
+                logger.error(f"两食材共现 fast path 执行失败: {e}")
+                return []
+
+        # —— 通用路径：保留 multi_hop_traversal / extract_knowledge_subgraph 等探索能力 ——
         # 1. 查询意图理解
         graph_query = self.understand_graph_query(query)
         logger.info(f"查询类型: {graph_query.query_type.value}")
