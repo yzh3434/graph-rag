@@ -587,11 +587,24 @@ class GraphRAGRetrieval:
     def _paths_to_documents(self, paths: List[GraphPath], query: str) -> List[Document]:
         """将图路径转换为Document对象"""
         documents = []
-        
+
         for i, path in enumerate(paths):
-            # 构建路径描述
             path_desc = self._build_path_description(path)
-            
+
+            # multi_hop 查询的语义结果是路径中的 Recipe；path.nodes[0] 是 source 节点
+            # （食材或别的实体），不是答案本身。优先取路径中第一个 Recipe 节点；极端
+            # 情况整条 path 一个 Recipe 都没有时，fallback 到路径终点而非起点。
+            recipe_node = next(
+                (n for n in path.nodes
+                 if "Recipe" in n.get("labels", []) and n.get("id")),
+                None
+            )
+            if recipe_node is None and path.nodes:
+                recipe_node = path.nodes[-1]
+
+            node_id     = recipe_node.get("id", "")             if recipe_node else ""
+            recipe_name = recipe_node.get("name", "图结构结果") if recipe_node else "图结构结果"
+
             doc = Document(
                 page_content=path_desc,
                 metadata={
@@ -601,12 +614,12 @@ class GraphRAGRetrieval:
                     "path_type": path.path_type,
                     "node_count": len(path.nodes),
                     "relationship_count": len(path.relationships),
-                    "node_id": path.nodes[0].get("id", "") if path.nodes else "",
-                    "recipe_name": path.nodes[0].get("name", "图结构结果") if path.nodes else "图结构结果"
+                    "node_id": node_id,
+                    "recipe_name": recipe_name,
                 }
             )
             documents.append(doc)
-            
+
         return documents
     
     def _subgraph_to_documents(self, subgraph: KnowledgeSubgraph, 
