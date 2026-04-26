@@ -31,6 +31,8 @@ class QueryAnalysis:
     recommended_strategy: SearchStrategy
     confidence: float  # 推荐置信度
     reasoning: str  # 推荐理由
+    # 规则路由命中 multi_hop 时填入识别出的食材，graph_rag_search 据此走 fast path
+    extracted_ingredients: Optional[List[str]] = None
 
 class IntelligentQueryRouter:
     """
@@ -96,7 +98,22 @@ class IntelligentQueryRouter:
             )
             return pattern_result
 
-        # —— Layer 2: LLM 兜底 ——
+        # —— Layer 2: 规则未命中 → 默认 hybrid_traditional ——
+        # 规则未匹配到 multi_hop / comparison 模式时，绝大多数是单菜事实/属性/步骤/为什么类查询，
+        # hybrid_traditional 已能覆盖。除非显式开启 enable_llm_routing_fallback，否则不再调 LLM。
+        if not getattr(self.config, "enable_llm_routing_fallback", False):
+            logger.info("规则未命中三种模式，默认走 hybrid_traditional（已跳过 LLM）")
+            return QueryAnalysis(
+                query_complexity=0.3,
+                relationship_intensity=0.2,
+                reasoning_required=False,
+                entity_count=1,
+                recommended_strategy=SearchStrategy.HYBRID_TRADITIONAL,
+                confidence=0.9,
+                reasoning="规则未命中 multi_hop / comparison 模式，默认 hybrid_traditional",
+            )
+
+        # —— Layer 3: LLM 兜底（仅在 enable_llm_routing_fallback=True 时启用）——
         analysis_prompt = f"""
 作为 RAG 系统的查询分析专家，请分析以下烹饪问答查询，并选择最适合的检索策略。
 
@@ -220,6 +237,7 @@ class IntelligentQueryRouter:
                     recommended_strategy=SearchStrategy.GRAPH_RAG,
                     confidence=0.95,
                     reasoning=f"规则匹配：多食材共现查询（{ingredients[:3]}）",
+                    extracted_ingredients=ingredients[:2],  # 取前两个传给 fast path
                 )
 
         if has_comparison_kw:
@@ -309,7 +327,9 @@ class IntelligentQueryRouter:
                 
             elif analysis.recommended_strategy == SearchStrategy.GRAPH_RAG:
                 logger.info("🕸️ 使用图RAG检索")
-                documents = self.graph_rag_retrieval.graph_rag_search(query, top_k)
+                documents = self.graph_rag_retrieval.graph_rag_search(
+                    query, top_k, ingredients_hint=analysis.extracted_ingredients
+                )
                 
             elif analysis.recommended_strategy == SearchStrategy.COMBINED:
                 logger.info("🔄 使用组合检索策略")
