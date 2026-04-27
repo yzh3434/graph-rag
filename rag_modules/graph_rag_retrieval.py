@@ -398,6 +398,47 @@ class GraphRAGRetrieval:
         logger.info(f"两食材共现查询：{ing1} & {ing2} → 命中 {len(paths)} 条菜")
         return paths
 
+    def _find_recipes_by_names(self, names: List[str], session) -> List[GraphPath]:
+        """
+        Fast path：按菜名直接查回 Recipe 节点（两菜对比 comparison 专用）。
+
+        每个匹配菜名返回一条单 Recipe 节点的 GraphPath，nodes=[recipe]。
+        page_content 会在 _build_path_description 里加上 difficulty / 时长 等关键属性，
+        让生成层无需再做属性查询即可对比两菜。
+
+        与 _find_co_occurring_recipes 的差异：那里是"两食材→共现菜"的 2 跳，这里是
+        "菜名→菜节点"的 0 跳直查，path_length=0，path_type="recipe_lookup"。
+        """
+        cypher = """
+        MATCH (r:Recipe)
+        WHERE ANY(name IN $names WHERE r.name CONTAINS name)
+          AND r.nodeId >= '200000000'
+        RETURN DISTINCT r
+        LIMIT 10
+        """
+        paths: List[GraphPath] = []
+        try:
+            result = session.run(cypher, {"names": names})
+            for rec in result:
+                r = rec["r"]
+                paths.append(GraphPath(
+                    nodes=[{
+                        "id":         r.get("nodeId", ""),
+                        "name":       r.get("name", ""),
+                        "labels":     list(r.labels),
+                        "properties": dict(r),
+                    }],
+                    relationships=[],
+                    path_length=0,
+                    relevance_score=1.0,
+                    path_type="recipe_lookup",
+                ))
+        except Exception as e:
+            logger.error(f"_find_recipes_by_names Cypher 执行失败: {e}")
+
+        logger.info(f"两菜对比查询：{names} → 命中 {len(paths)} 个 Recipe 节点")
+        return paths
+
     def extract_knowledge_subgraph(self, graph_query: GraphQuery) -> KnowledgeSubgraph:
         """
         提取知识子图：获取实体相关的完整知识网络
@@ -531,12 +572,17 @@ class GraphRAGRetrieval:
         return query_plans
     
     def graph_rag_search(self, query: str, top_k: int = 5,
-                         ingredients_hint: Optional[List[str]] = None) -> List[Document]:
+                         ingredients_hint: Optional[List[str]] = None,
+                         recipes_hint: Optional[List[str]] = None) -> List[Document]:
         """
         图RAG主搜索接口：整合所有图RAG能力
 
         ingredients_hint：上游路由器规则识别出的食材列表。当恰好为 2 个时，跳过
         understand_graph_query 的 LLM 调用，直接走 _find_co_occurring_recipes 精准 2 跳。
+
+        recipes_hint：上游路由器规则识别出的菜名列表（两菜对比 combined 模式）。当恰好
+        为 2 个时，跳过 understand_graph_query 的 LLM 调用，直接按菜名查回 Recipe 节点
+        及其属性，由生成层做对比。
         """
         logger.info(f"开始图RAG检索: {query}")
 
@@ -544,7 +590,7 @@ class GraphRAGRetrieval:
             logger.warning("Neo4j连接未建立，返回空结果")
             return []
 
-        # —— Fast path：两食材共现查询走精准 2 跳，跳过 LLM 意图分析 ——
+        # —— Fast path A：两食材共现查询走精准 2 跳，跳过 LLM 意图分析 ——
         if ingredients_hint and len(ingredients_hint) == 2:
             logger.info(f"图RAG fast path：两食材共现 {ingredients_hint}")
             try:
@@ -558,6 +604,20 @@ class GraphRAGRetrieval:
                 return documents[:top_k]
             except Exception as e:
                 logger.error(f"两食材共现 fast path 执行失败: {e}")
+                return []
+
+        # —— Fast path B：两菜对比查询直接按名查回 Recipe，跳过 LLM 意图分析 ——
+        if recipes_hint and len(recipes_hint) == 2:
+            logger.info(f"图RAG fast path：两菜对比 {recipes_hint}")
+            try:
+                with self.driver.session() as session:
+                    paths = self._find_recipes_by_names(recipes_hint, session)
+                documents = self._paths_to_documents(paths, query)
+                documents = self._rank_by_graph_relevance(documents, query)
+                logger.info(f"Fast path 完成，返回 {len(documents[:top_k])} 个结果")
+                return documents[:top_k]
+            except Exception as e:
+                logger.error(f"两菜对比 fast path 执行失败: {e}")
                 return []
 
         # —— 通用路径：保留 multi_hop_traversal / extract_knowledge_subgraph 等探索能力 ——
@@ -721,14 +781,36 @@ class GraphRAGRetrieval:
         """构建路径的自然语言描述"""
         if not path.nodes:
             return "空路径"
-            
+
+        # 单 Recipe 节点（comparison fast path 等）：附带关键属性，否则页面内容只有菜名
+        # 对生成层无可比较信息
+        if len(path.nodes) == 1 and "Recipe" in path.nodes[0].get("labels", []):
+            n = path.nodes[0]
+            props = n.get("properties", {}) or {}
+            attr_pairs = [
+                ("difficulty",  "难度"),
+                ("prepTime",    "准备时间"),
+                ("cookTime",    "烹饪时间"),
+                ("totalTime",   "总时长"),
+                ("servings",    "份量"),
+                ("cuisineType", "菜系"),
+                ("category",    "分类"),
+                ("description", "简介"),
+            ]
+            attrs = [f"{label}: {props[key]}"
+                     for key, label in attr_pairs
+                     if props.get(key) not in (None, "")]
+            attrs_str = "；".join(attrs)
+            name = n.get("name", "未知菜品")
+            return f"{name}（{attrs_str}）" if attrs_str else name
+
         desc_parts = []
         for i, node in enumerate(path.nodes):
             desc_parts.append(node.get("name", f"节点{i}"))
             if i < len(path.relationships):
                 rel_type = path.relationships[i].get("type", "相关")
                 desc_parts.append(f" --{rel_type}--> ")
-        
+
         return "".join(desc_parts)
     
     def _build_subgraph_description(self, subgraph: KnowledgeSubgraph) -> str:
