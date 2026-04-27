@@ -49,8 +49,17 @@ def hit_at_k(retrieved: List[str], relevant: List[str], k: int) -> int:
 def recall_at_k(retrieved: List[str], relevant: List[str], k: int) -> float:
     if not relevant:
         return 0.0
-    hits = sum(1 for rid in retrieved[:k] if rid in relevant)
-    return hits / len(relevant)
+    # 同一节点在 retrieved 中重复出现只算一次命中，否则 recall 可能 > 1
+    relevant_set = set(relevant)
+    seen: set = set()
+    hits = 0
+    for rid in retrieved[:k]:
+        if rid in seen:
+            continue
+        seen.add(rid)
+        if rid in relevant_set:
+            hits += 1
+    return hits / len(relevant_set)
 
 
 def mrr_at_k(retrieved: List[str], relevant: List[str], k: int) -> float:
