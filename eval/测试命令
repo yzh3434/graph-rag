@@ -1,3 +1,7 @@
 python -m eval.eval_runner --run_id baseline_smoke --limit 5
 
 python -m eval.eval_runner --run_id baseline_v1
+
+python -m eval.eval_runner --run_id route_v2_smoke --filter_question_type multi_hop,comparison
+
+python -m eval.eval_runner --run_id route_v2
