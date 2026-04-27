@@ -33,6 +33,8 @@ class QueryAnalysis:
     reasoning: str  # 推荐理由
     # 规则路由命中 multi_hop 时填入识别出的食材，graph_rag_search 据此走 fast path
     extracted_ingredients: Optional[List[str]] = None
+    # 规则路由命中 comparison 时填入识别出的菜名，combined_search 据此跳过图侧 LLM 意图分析
+    extracted_recipes: Optional[List[str]] = None
 
 class IntelligentQueryRouter:
     """
@@ -251,6 +253,7 @@ class IntelligentQueryRouter:
                     recommended_strategy=SearchStrategy.COMBINED,
                     confidence=0.95,
                     reasoning=f"规则匹配：两菜对比查询（{recipes[:3]}）",
+                    extracted_recipes=recipes[:2],  # 取前两个传给 combined fast path
                 )
 
         return None
@@ -333,7 +336,9 @@ class IntelligentQueryRouter:
                 
             elif analysis.recommended_strategy == SearchStrategy.COMBINED:
                 logger.info("🔄 使用组合检索策略")
-                documents = self._combined_search(query, top_k)
+                documents = self._combined_search(
+                    query, top_k, recipes_hint=analysis.extracted_recipes
+                )
             
             # 4. 结果后处理
             documents = self._post_process_results(documents, analysis)
@@ -347,17 +352,23 @@ class IntelligentQueryRouter:
             documents = self.traditional_retrieval.hybrid_search(query, top_k)
             return documents, analysis
     
-    def _combined_search(self, query: str, top_k: int) -> List[Document]:
+    def _combined_search(self, query: str, top_k: int,
+                         recipes_hint: Optional[List[str]] = None) -> List[Document]:
         """
         组合搜索策略：结合传统检索和图RAG的优势
+
+        recipes_hint：上游路由器规则识别出的菜名列表（comparison 模式专用）。
+        透传给 graph_rag_search → 触发 fast path 跳过图侧 LLM 意图分析。
         """
         # 分配结果数量
         traditional_k = max(1, top_k // 2)
         graph_k = top_k - traditional_k
-        
+
         # 执行两种检索
         traditional_docs = self.traditional_retrieval.hybrid_search(query, traditional_k)
-        graph_docs = self.graph_rag_retrieval.graph_rag_search(query, graph_k)
+        graph_docs = self.graph_rag_retrieval.graph_rag_search(
+            query, graph_k, recipes_hint=recipes_hint
+        )
         
         # 合并和去重
         combined_docs = []
