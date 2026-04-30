@@ -1,0 +1,174 @@
+{
+  "run_id": "route_v2",
+  "timestamp": "2026-04-27T22:59:08",
+  "config": {
+    "use_bm25": false,
+    "use_rrf": false,
+    "use_rerank": false,
+    "topic_alignment": false,
+    "retrieve_top_k": 10,
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "llm_model": "deepseek-chat",
+    "skip_generation_eval": false,
+    "note": ""
+  },
+  "n_total": 100,
+  "n_valid": 100,
+  "n_failed": 0,
+  "aggregated": {
+    "retrieval": {
+      "hit@5": 0.99,
+      "recall@5": 0.915,
+      "mrr@10": 0.7265833333333334
+    },
+    "routing": {
+      "accuracy": 1.0
+    },
+    "generation": {
+      "faithfulness": 0.7335512079631553,
+      "answer_relevancy": 0.9018842386316461
+    },
+    "system": {
+      "latency_p50_ms": 5646.55,
+      "latency_p95_ms": 12983.263999999997,
+      "latency_retrieve_p50_ms": 1997.005,
+      "latency_generate_p50_ms": 3659.035
+    }
+  },
+  "by_question_type": {
+    "step_by_step": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.6333333333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.6100866110645986,
+      "answer_relevancy": 0.9018853582040046,
+      "latency_ms_mean": 11532.027999999998
+    },
+    "multi_hop": {
+      "n": 15,
+      "hit@5": 0.9333333333333333,
+      "recall@5": 0.43333333333333335,
+      "mrr@10": 0.7605555555555555,
+      "routing_correct": 1.0,
+      "faithfulness": 0.8601485551485553,
+      "answer_relevancy": 0.910479639651506,
+      "latency_ms_mean": 3244.937333333333
+    },
+    "entity_relation": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.5833333333333334,
+      "routing_correct": 1.0,
+      "faithfulness": 0.701282582432734,
+      "answer_relevancy": 0.9024314299330704,
+      "latency_ms_mean": 6943.165333333334
+    },
+    "attribute_query": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.7,
+      "routing_correct": 1.0,
+      "faithfulness": 0.8772222222222221,
+      "answer_relevancy": 0.9448987153362765,
+      "latency_ms_mean": 3821.958666666667
+    },
+    "causal": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.8833333333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.2366851285968933,
+      "answer_relevancy": 0.8724742186062963,
+      "latency_ms_mean": 8796.896666666667
+    },
+    "simple_fact": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.65,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9288888888888889,
+      "answer_relevancy": 0.8667788672633739,
+      "latency_ms_mean": 3941.19
+    },
+    "comparison": {
+      "n": 10,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.95,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9643544891640866,
+      "answer_relevancy": 0.9204200428246703,
+      "latency_ms_mean": 7617.497
+    }
+  },
+  "by_expected_strategy": {
+    "hybrid_traditional": {
+      "n": 75,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.69,
+      "routing_correct": 1.0,
+      "faithfulness": 0.6766999509389616,
+      "answer_relevancy": 0.8976937178686042,
+      "latency_ms_mean": 7007.047733333335
+    },
+    "graph_rag": {
+      "n": 15,
+      "hit@5": 0.9333333333333333,
+      "recall@5": 0.43333333333333335,
+      "mrr@10": 0.7605555555555555,
+      "routing_correct": 1.0,
+      "faithfulness": 0.8601485551485553,
+      "answer_relevancy": 0.910479639651506,
+      "latency_ms_mean": 3244.937333333333
+    },
+    "combined": {
+      "n": 10,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.95,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9643544891640866,
+      "answer_relevancy": 0.9204200428246703,
+      "latency_ms_mean": 7617.497
+    }
+  },
+  "by_difficulty": {
+    "medium": {
+      "n": 30,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.6083333333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.6556845967486662,
+      "answer_relevancy": 0.9021583940685377,
+      "latency_ms_mean": 9237.596666666666
+    },
+    "hard": {
+      "n": 40,
+      "hit@5": 0.975,
+      "recall@5": 0.7875,
+      "mrr@10": 0.8539583333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.6630606415186077,
+      "answer_relevancy": 0.8987127075528434,
+      "latency_ms_mean": 6420.062
+    },
+    "easy": {
+      "n": 30,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.675,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9030555555555556,
+      "answer_relevancy": 0.9058387912998251,
+      "latency_ms_mean": 3881.574333333333
+    }
+  }
+}
