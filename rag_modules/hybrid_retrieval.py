@@ -1,20 +1,33 @@
 """
 混合检索模块
 基于双层检索范式：实体级 + 主题级检索
-结合图结构检索和向量检索，使用Round-robin轮询策略
+结合 BM25（jieba 分词）、向量检索与图键值索引，使用 RRF 融合
 """
 
 import json
 import logging
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 from dataclasses import dataclass
 
+import jieba
+from rank_bm25 import BM25Okapi
 from langchain_core.documents import Document
-from langchain_community.retrievers import BM25Retriever
 from neo4j import GraphDatabase
 from .graph_indexing import GraphIndexingModule
 
 logger = logging.getLogger(__name__)
+
+# 中文停用词表：助词 / 连词 / 疑问词 / 人称 / 语气词 / 动词修饰
+# 不引第三方停用词包，按烹饪问答场景手挑（覆盖 testset 高频虚词）
+_CHINESE_STOPWORDS = set("""
+的 了 和 是 在 我 有 就 不 也 都 还 这 那 一 个 与 及 等 上 下 中 为 以 于 从 把 被 让 使 又 而 但 或
+什么 怎么 如何 哪些 哪个 哪里 谁 多少 几 你 他 她 它 我们 他们 她们 它们
+请问 请 想 要 需要 能 可以 应该 会 啊 呢 吧 嘛 吗 哦 呀 哈
+之 其 此 该 即 各 每 些 种 类 时 后 前 里 外 内 间 已经 正在 一些 一下
+""".split())
+
+# RRF 融合的常数 k：Cormack et al. 2009 默认值
+_RRF_K = 60
 
 @dataclass
 class RetrievalResult:
@@ -30,42 +43,61 @@ class HybridRetrievalModule:
     """
     混合检索模块
     核心特点：
-    1. 双层检索范式（实体级 + 主题级）
-    2. 关键词提取和匹配
-    3. 图结构+向量检索结合
-    4. 一跳邻居扩展
-    5. Round-robin轮询合并策略
+    1. 双层检索范式（实体级 + 主题级，基于图键值索引）
+    2. BM25 关键词检索（jieba 分词 + 停用词过滤）
+    3. 向量检索（Milvus）+ 一跳邻居扩展
+    4. RRF (Reciprocal Rank Fusion) 融合三路结果
     """
-    
+
     def __init__(self, config, milvus_module, data_module, llm_client):
         self.config = config
         self.milvus_module = milvus_module
         self.data_module = data_module
         self.llm_client = llm_client
         self.driver = None
-        self.bm25_retriever = None
-        
+
+        # BM25 索引 + 原始文档（按索引位置对齐）
+        self.bm25: Optional[BM25Okapi] = None
+        self.bm25_corpus_docs: List[Document] = []
+
         # 图索引模块
         self.graph_indexing = GraphIndexingModule(config, llm_client)
         self.graph_indexed = False
-        
+
     def initialize(self, chunks: List[Document]):
         """初始化检索系统"""
         logger.info("初始化混合检索模块...")
-        
+
         # 连接Neo4j
         self.driver = GraphDatabase.driver(
-            self.config.neo4j_uri, 
+            self.config.neo4j_uri,
             auth=(self.config.neo4j_user, self.config.neo4j_password)
         )
-        
-        # 初始化BM25检索器
+
+        # 初始化 BM25（jieba 分词 + 中文停用词过滤）
         if chunks:
-            self.bm25_retriever = BM25Retriever.from_documents(chunks)
-            logger.info(f"BM25检索器初始化完成，文档数量: {len(chunks)}")
-        
+            self.bm25_corpus_docs = list(chunks)
+            tokenized_corpus = [self._tokenize_chinese(d.page_content) for d in chunks]
+            self.bm25 = BM25Okapi(tokenized_corpus)
+            avg_tokens = sum(len(t) for t in tokenized_corpus) / max(1, len(tokenized_corpus))
+            logger.info(
+                f"BM25(jieba+stopwords) 索引构建完成，文档数: {len(chunks)}，"
+                f"平均 token 数: {avg_tokens:.1f}"
+            )
+
         # 初始化图索引
         self._build_graph_index()
+
+    @staticmethod
+    def _tokenize_chinese(text: str) -> List[str]:
+        """jieba 精确分词 + 停用词 / 空白 / 单字符过滤"""
+        if not text:
+            return []
+        tokens = jieba.lcut(text)
+        return [
+            t for t in tokens
+            if t.strip() and t not in _CHINESE_STOPWORDS and not t.isspace()
+        ]
         
     def _build_graph_index(self):
         """构建图索引"""
@@ -542,60 +574,147 @@ class HybridRetrievalModule:
             logger.error(f"获取邻居节点失败: {e}")
             return []
     
+    def bm25_search(self, query: str, top_k: int = 5) -> List[Document]:
+        """
+        BM25 检索：jieba 分词后查 BM25Okapi 索引，按分数降序返回 top_k。
+        分数写入 metadata["bm25_score"]，供调试与未来潜在的分数级融合使用。
+        """
+        if self.bm25 is None or not self.bm25_corpus_docs:
+            logger.warning("BM25 索引未初始化，bm25_search 返回空")
+            return []
+
+        tokenized_query = self._tokenize_chinese(query)
+        if not tokenized_query:
+            logger.debug(f"BM25 query 分词为空，跳过: {query}")
+            return []
+
+        scores = self.bm25.get_scores(tokenized_query)
+        # 按分数降序取 top_k 索引
+        top_indices = sorted(
+            range(len(scores)), key=lambda i: scores[i], reverse=True
+        )[:top_k]
+
+        docs: List[Document] = []
+        for idx in top_indices:
+            score = float(scores[idx])
+            if score <= 0:
+                # BM25 分数 ≤ 0 视为无关（IDF/TF 全无贡献），不进结果
+                continue
+            src = self.bm25_corpus_docs[idx]
+            recipe_name = (
+                src.metadata.get("recipe_name")
+                or src.metadata.get("name")
+                or "未知菜品"
+            )
+            doc = Document(
+                page_content=src.page_content,
+                metadata={
+                    **src.metadata,
+                    "recipe_name": recipe_name,
+                    "search_method": "bm25",
+                    "search_type": "bm25",
+                    "bm25_score": score,
+                }
+            )
+            docs.append(doc)
+
+        logger.info(f"BM25 检索完成，返回 {len(docs)} 个文档（query tokens={tokenized_query}）")
+        return docs
+
+    @staticmethod
+    def _rrf_merge(
+        ranked_lists: List[Tuple[str, List[Document]]],
+        top_k: int,
+        k: int = _RRF_K,
+    ) -> List[Document]:
+        """
+        Reciprocal Rank Fusion: score(d) = Σ_i 1 / (k + rank_i(d))
+
+        Args:
+            ranked_lists: 多路 (source_name, ranked_docs) — docs 按相关度降序
+            top_k: 最终返回个数
+            k: RRF 平滑常数，默认 60（Cormack et al. 2009）
+
+        去重 key：node_id 优先，page_content[:200] hash 兜底。
+        合并后 metadata 写入 rrf_score / rrf_sources / final_score。
+        """
+        rrf_scores: Dict[str, float] = {}
+        doc_index: Dict[str, Document] = {}
+        sources: Dict[str, List[str]] = {}
+        ranks_by_source: Dict[str, Dict[str, int]] = {}
+
+        for source_name, ranked_docs in ranked_lists:
+            for rank, doc in enumerate(ranked_docs, start=1):
+                node_id = doc.metadata.get("node_id")
+                doc_id = (
+                    str(node_id) if node_id is not None
+                    else f"hash::{hash(doc.page_content[:200])}"
+                )
+
+                contribution = 1.0 / (k + rank)
+                rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + contribution
+
+                # 第一次见到这个 doc 时记录为 canonical（通常是 rank 较高的那路）
+                if doc_id not in doc_index:
+                    doc_index[doc_id] = doc
+                    sources[doc_id] = []
+                    ranks_by_source[doc_id] = {}
+
+                if source_name not in sources[doc_id]:
+                    sources[doc_id].append(source_name)
+                    ranks_by_source[doc_id][source_name] = rank
+
+        # 按 RRF score 降序
+        sorted_ids = sorted(
+            rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True
+        )
+
+        merged: List[Document] = []
+        for doc_id in sorted_ids[:top_k]:
+            doc = doc_index[doc_id]
+            doc.metadata["rrf_score"] = rrf_scores[doc_id]
+            doc.metadata["rrf_sources"] = list(sources[doc_id])
+            doc.metadata["rrf_ranks"] = dict(ranks_by_source[doc_id])
+            doc.metadata["final_score"] = rrf_scores[doc_id]
+            merged.append(doc)
+
+        return merged
+
     def hybrid_search(self, query: str, top_k: int = 5) -> List[Document]:
         """
-        混合检索：使用Round-robin轮询合并策略
-        公平轮询合并不同检索结果，不使用权重配置
+        混合检索：三路召回（图键值双层 + 向量 + BM25）→ RRF 融合
         """
-        logger.info(f"开始混合检索: {query}")
-        
-        # 1. 双层检索（实体+主题检索）
-        dual_docs = self.dual_level_retrieval(query, top_k)
-        
-        # 2. 增强向量检索
-        vector_docs = self.vector_search_enhanced(query, top_k)
-        
-        # 3. Round-robin轮询合并
-        merged_docs = []
-        seen_doc_ids = set()
-        max_len = max(len(dual_docs), len(vector_docs))
-        origin_len = len(dual_docs) + len(vector_docs)
-        
-        for i in range(max_len):
-            # 先添加双层检索结果
-            if i < len(dual_docs):
-                doc = dual_docs[i]
-                doc_id = doc.metadata.get("node_id", hash(doc.page_content))
-                if doc_id not in seen_doc_ids:
-                    seen_doc_ids.add(doc_id)
-                    doc.metadata["search_method"] = "dual_level"
-                    doc.metadata["round_robin_order"] = len(merged_docs)
-                    # 设置统一的final_score字段
-                    doc.metadata["final_score"] = doc.metadata.get("relevance_score", 0.0)
-                    merged_docs.append(doc)
-            
-            # 再添加向量检索结果
-            if i < len(vector_docs):
-                doc = vector_docs[i]
-                doc_id = doc.metadata.get("node_id", hash(doc.page_content))
-                if doc_id not in seen_doc_ids:
-                    seen_doc_ids.add(doc_id)
-                    doc.metadata["search_method"] = "vector_enhanced"
-                    doc.metadata["round_robin_order"] = len(merged_docs)
-                    # 设置统一的final_score字段（向量得分需要转换）
-                    vector_score = doc.metadata.get("score", 0.0)
-                    # COSINE距离转换为相似度：distance越小，相似度越高
-                    similarity_score = max(0.0, 1.0 - vector_score) if vector_score <= 1.0 else 0.0
-                    doc.metadata["final_score"] = similarity_score
-                    merged_docs.append(doc)
-        
-        # 取前top_k个结果
-        final_docs = merged_docs[:top_k]
-        
-        logger.info(f"Round-robin合并：从总共{origin_len}个结果合并为{len(final_docs)}个文档")
-        logger.info(f"混合检索完成，返回 {len(final_docs)} 个文档")
+        logger.info(f"开始混合检索（dual + vector + bm25, RRF k={_RRF_K}）: {query}")
+
+        # 每路给 RRF 留够候选空间，否则三路各自前 top_k 容易没交集，融合退化
+        candidate_k = max(top_k * 2, 10)
+
+        dual_docs = self.dual_level_retrieval(query, candidate_k)
+        vector_docs = self.vector_search_enhanced(query, candidate_k)
+        bm25_docs = self.bm25_search(query, candidate_k)
+
+        # 标记每路来源（dual_level 内部会写 search_type 但不一定写 search_method）
+        for d in dual_docs:
+            d.metadata.setdefault("search_method", "dual_level")
+        for d in vector_docs:
+            d.metadata["search_method"] = "vector"
+        # bm25_search 内部已写 search_method=bm25
+
+        final_docs = self._rrf_merge(
+            ranked_lists=[
+                ("dual_level", dual_docs),
+                ("vector", vector_docs),
+                ("bm25", bm25_docs),
+            ],
+            top_k=top_k,
+        )
+
+        logger.info(
+            f"RRF 融合完成：dual={len(dual_docs)} vector={len(vector_docs)} "
+            f"bm25={len(bm25_docs)} → 最终 {len(final_docs)} 个文档"
+        )
         return final_docs
-        
+
     def close(self):
         """关闭资源连接"""
         if self.driver:
