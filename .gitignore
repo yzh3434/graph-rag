@@ -18,3 +18,10 @@ venv/
 *.ckpt
 *.bin
 *.log
+
+# 评测归档（仅本地保留，不入仓库；面向外部的展示数据放 eval_output 三主线即可）
+eval_archive/
+
+# 系统文件
+.DS_Store
+Thumbs.db
