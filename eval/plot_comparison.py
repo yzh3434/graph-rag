@@ -32,7 +32,7 @@ FIG_DIR.mkdir(parents=True, exist_ok=True)
 VERSIONS = [
     ("baseline_v2",   "Baseline\n(占位 BM25 + Round-robin + 纯 LLM 路由)", "#9aa0a6"),
     ("route_v2",      "+ 智能路由两层架构 + Fast Path",                  "#f4a261"),
-    ("retrieval_v1",  "+ 真 BM25(jieba) + RRF（最终版）",                 "#2a9d8f"),
+    ("retrieval_v2",  "+ 真 BM25(jieba) + RRF（最终版）",                 "#2a9d8f"),
 ]
 
 # 7 类问题，前 5 类走 hybrid_traditional（D4 影响范围），后 2 类走 graph_rag/combined
