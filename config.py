@@ -29,6 +29,7 @@ class GraphRAGConfig:
     top_k: int = 5
 
     # 路由配置
+    enable_tool_calling_router: bool = True    # 默认使用 tool calling路由器
     enable_llm_routing_fallback: bool = False  # 规则未命中三种模式时是否调用 LLM；默认走 hybrid_traditional
 
     # 生成配置

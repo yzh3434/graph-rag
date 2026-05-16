@@ -26,6 +26,7 @@ from rag_modules import (
 from rag_modules.hybrid_retrieval import HybridRetrievalModule
 from rag_modules.graph_rag_retrieval import GraphRAGRetrieval
 from rag_modules.intelligent_query_router import IntelligentQueryRouter, QueryAnalysis
+from rag_modules.llm_router_tool_calling import LLMRouterWithToolCalling
 
 # 加载环境变量
 load_dotenv()
@@ -108,13 +109,21 @@ class AdvancedGraphRAGSystem:
             
             # 6. 智能查询路由器
             print("初始化智能查询路由器...")
-            self.query_router = IntelligentQueryRouter(
-                traditional_retrieval=self.traditional_retrieval,
-                graph_rag_retrieval=self.graph_rag_retrieval,
-                llm_client=self.generation_module.client,
-                config=self.config
-            )
-            
+            if self.config.enable_tool_calling_router:
+                self.query_router = LLMRouterWithToolCalling(
+                    traditional_retrieval=self.traditional_retrieval,
+                    graph_rag_retrieval=self.graph_rag_retrieval,
+                    llm_client=self.generation_module.client,
+                    config=self.config
+                )
+            else:
+                self.query_router = IntelligentQueryRouter(
+                    traditional_retrieval=self.traditional_retrieval,
+                    graph_rag_retrieval=self.graph_rag_retrieval,
+                    llm_client=self.generation_module.client,
+                    config=self.config
+                )
+
             print("✅ 高级图RAG系统初始化完成！")
             
         except Exception as e:
