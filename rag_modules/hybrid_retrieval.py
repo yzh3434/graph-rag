@@ -88,6 +88,10 @@ class HybridRetrievalModule:
         # 初始化图索引
         self._build_graph_index()
 
+        # 初始化父文档映射，每个nodeid对应该chunk所属父文档的document
+        self._parent_doc_map = self._build_parent_doc_map()
+        logger.info(f"父文档映射构建完成，菜谱文档数: {len(self._parent_doc_map)}")
+
     @staticmethod
     def _tokenize_chinese(text: str) -> List[str]:
         """jieba 精确分词 + 停用词 / 空白 / 单字符过滤"""
@@ -708,6 +712,46 @@ class HybridRetrievalModule:
 
         return merged
 
+    def _build_parent_doc_map(self) -> Dict[str, Document]:
+        """{str(node_id): 整篇父菜谱 Document}，由分块前的 data_module.documents 懒建一次。"""
+        docs = getattr(self.data_module, "documents", None) or []
+        m: Dict[str, Document] = {}
+        for d in docs:
+            nid = d.metadata.get("node_id")
+            if nid is not None:
+                m[str(nid)] = d
+        return m
+
+    def _attach_parent_documents(self, docs: List[Document]) -> List[Document]:
+        """RRF 去重后，前 parent_doc_top_n 条且能在映射中找到父菜谱的，
+        用整篇父菜谱（超 parent_doc_max_chars 截断）替换 chunk；其余原样不变。
+        不改顺序/数量/排名，不 mutate 输入（被替换的造新 Document，未替换的直接传原对象）。"""
+        if getattr(self, "_parent_doc_map", None) is None:
+            self._parent_doc_map = self._build_parent_doc_map()
+        pmap = self._parent_doc_map
+        if not pmap:
+            logger.warning("父文档映射为空（data_module.documents 未就绪），父文档回填未生效，仍然使用原chunk填充上下文")
+            return docs
+        top_n = getattr(self.config, "parent_doc_top_n", 3)
+        max_chars = getattr(self.config, "parent_doc_max_chars", 4000)
+
+        out: List[Document] = []
+        for i, doc in enumerate(docs):
+            if i >= top_n:
+                out.append(doc)
+                continue
+            nid = doc.metadata.get("node_id")
+            key = str(nid if nid is not None else doc.metadata.get("parent_id"))
+            parent = pmap.get(key)
+            if parent is None:
+                out.append(doc)
+                continue
+            pc = parent.page_content or ""
+            if len(pc) > max_chars:
+                pc = pc[:max_chars] + "…（父文档已截断）"
+            out.append(Document(page_content=pc, metadata=dict(doc.metadata)))
+        return out
+
     def hybrid_search(self, query: str, top_k: int = 5) -> List[Document]:
         """
         混合检索：三路召回（图键值双层 + 向量 + BM25）→ RRF 融合
@@ -736,6 +780,10 @@ class HybridRetrievalModule:
             ],
             top_k=top_k,
         )
+
+        # 父文档回填（仅 hybrid_traditional 路；不改排名，仅换上下文内容）
+        if getattr(self.config, "enable_parent_doc_retrieval", False):
+            final_docs = self._attach_parent_documents(final_docs)
 
         logger.info(
             f"RRF 融合完成：dual={len(dual_docs)} vector={len(vector_docs)} "
