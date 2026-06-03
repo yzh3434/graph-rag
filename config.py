@@ -32,6 +32,11 @@ class GraphRAGConfig:
     enable_tool_calling_router: bool = True    # 默认使用 tool calling路由器
     enable_llm_routing_fallback: bool = False  # 规则未命中三种模式时是否调用 LLM；默认走 hybrid_traditional
 
+    # CRAG（网络检索）配置
+    enable_crag: bool = False              # 默认关闭，开则启用 Corrective-RAG
+    tavily_max_results: int = 5            # 单次网络检索取回条数
+    tavily_timeout_seconds: int = 10       # Tavily 调用超时
+
     # 父文档检索配置
     enable_parent_doc_retrieval: bool = False  # 默认 False，不做父文档回填，直接把chunk当作上下文，有可能会出现步骤不全问题
     parent_doc_top_n: int = 3                   # 仅 RRF 分前 N 名做父文档替换
@@ -71,6 +76,7 @@ class GraphRAGConfig:
             'llm_model': self.llm_model,
             'top_k': self.top_k,
             'enable_llm_routing_fallback': self.enable_llm_routing_fallback,
+            'enable_crag': self.enable_crag,
             'enable_parent_doc_retrieval': self.enable_parent_doc_retrieval,
             'parent_doc_top_n': self.parent_doc_top_n,
             'parent_doc_max_chars': self.parent_doc_max_chars,
