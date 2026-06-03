@@ -752,43 +752,68 @@ class HybridRetrievalModule:
             out.append(Document(page_content=pc, metadata=dict(doc.metadata)))
         return out
 
+    def _round_robin_merge(
+        self,
+        ranked_lists: List[Tuple[str, List[Document]]],
+        top_k: int = 5,
+    ) -> List[Document]:
+        """Round-robin 轮询合并（baseline 兜底，enable_bm25_rrf=False 时用）。
+        按 rank 交替从各路取一个；node_id 去重；写 search_method/final_score。
+        与 initial commit 5e45482 的历史 baseline 行为一致，保证 baseline 数字可比。
+        """
+        merged_docs: List[Document] = []
+        seen: set = set()
+        max_len = max((len(docs) for _, docs in ranked_lists), default=0)
+        for i in range(max_len):
+            for name, docs in ranked_lists:
+                if i >= len(docs):
+                    continue
+                doc = docs[i]
+                doc_id = doc.metadata.get("node_id", hash(doc.page_content))
+                if doc_id in seen:
+                    continue
+                seen.add(doc_id)
+                if name == "vector":
+                    doc.metadata["search_method"] = "vector_enhanced"
+                    vs = doc.metadata.get("score", 0.0)
+                    doc.metadata["final_score"] = max(0.0, 1.0 - vs) if vs <= 1.0 else 0.0
+                else:
+                    doc.metadata["search_method"] = name
+                    doc.metadata["final_score"] = doc.metadata.get("relevance_score", 0.0)
+                merged_docs.append(doc)
+        return merged_docs[:top_k]
+
     def hybrid_search(self, query: str, top_k: int = 5) -> List[Document]:
-        """
-        混合检索：三路召回（图键值双层 + 向量 + BM25）→ RRF 融合
-        """
-        logger.info(f"开始混合检索（dual + vector + bm25, RRF k={_RRF_K}）: {query}")
+        """混合检索：enable_bm25_rrf=True 走 BM25+RRF 三路融合，False 回退 round-robin(dual+vector)。"""
+        if not getattr(self.config, "enable_bm25_rrf", True):
+            logger.info(f"开始混合检索（round-robin 兜底, baseline）: {query}")
+            dual_docs = self.dual_level_retrieval(query, top_k)
+            vector_docs = self.vector_search_enhanced(query, top_k)
+            final_docs = self._round_robin_merge(
+                [("dual_level", dual_docs), ("vector", vector_docs)], top_k=top_k
+            )
+        else:
+            logger.info(f"开始混合检索（dual + vector + bm25, RRF k={_RRF_K}）: {query}")
+            candidate_k = max(top_k * 2, 10)
+            dual_docs = self.dual_level_retrieval(query, candidate_k)
+            vector_docs = self.vector_search_enhanced(query, candidate_k)
+            bm25_docs = self.bm25_search(query, candidate_k)
+            for d in dual_docs:
+                d.metadata.setdefault("search_method", "dual_level")
+            for d in vector_docs:
+                d.metadata["search_method"] = "vector"
+            final_docs = self._rrf_merge(
+                ranked_lists=[
+                    ("dual_level", dual_docs),
+                    ("vector", vector_docs),
+                    ("bm25", bm25_docs),
+                ],
+                top_k=top_k,
+            )
 
-        # 每路给 RRF 留够候选空间，否则三路各自前 top_k 容易没交集，融合退化
-        candidate_k = max(top_k * 2, 10)
-
-        dual_docs = self.dual_level_retrieval(query, candidate_k)
-        vector_docs = self.vector_search_enhanced(query, candidate_k)
-        bm25_docs = self.bm25_search(query, candidate_k)
-
-        # 标记每路来源（dual_level 内部会写 search_type 但不一定写 search_method）
-        for d in dual_docs:
-            d.metadata.setdefault("search_method", "dual_level")
-        for d in vector_docs:
-            d.metadata["search_method"] = "vector"
-        # bm25_search 内部已写 search_method=bm25
-
-        final_docs = self._rrf_merge(
-            ranked_lists=[
-                ("dual_level", dual_docs),
-                ("vector", vector_docs),
-                ("bm25", bm25_docs),
-            ],
-            top_k=top_k,
-        )
-
-        # 父文档回填（仅 hybrid_traditional 路；不改排名，仅换上下文内容）
+        # 父文档回填（两路径共用；baseline 配置下 enable_parent_doc_retrieval=False 不触发）
         if getattr(self.config, "enable_parent_doc_retrieval", False):
             final_docs = self._attach_parent_documents(final_docs)
-
-        logger.info(
-            f"RRF 融合完成：dual={len(dual_docs)} vector={len(vector_docs)} "
-            f"bm25={len(bm25_docs)} → 最终 {len(final_docs)} 个文档"
-        )
         return final_docs
 
     def close(self):

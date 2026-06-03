@@ -41,6 +41,7 @@ class GraphRAGConfig:
     enable_parent_doc_retrieval: bool = False  # 默认 False，不做父文档回填，直接把chunk当作上下文，有可能会出现步骤不全问题
     parent_doc_top_n: int = 3                   # 仅 RRF 分前 N 名做父文档替换
     parent_doc_max_chars: int = 4000            # 每篇父文档字符上限（兜底）
+    enable_bm25_rrf: bool = True   # False 则 hybrid_search 回退 round-robin（baseline 用）
 
     # 生成配置
     temperature: float = 0.1
@@ -80,6 +81,7 @@ class GraphRAGConfig:
             'enable_parent_doc_retrieval': self.enable_parent_doc_retrieval,
             'parent_doc_top_n': self.parent_doc_top_n,
             'parent_doc_max_chars': self.parent_doc_max_chars,
+            'enable_bm25_rrf': self.enable_bm25_rrf,
 
             'temperature': self.temperature,
             'max_tokens': self.max_tokens,
