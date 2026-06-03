@@ -390,8 +390,10 @@ def main():
     parser.add_argument("--parent_doc", action="store_true",
                         help="开启父文档检索（retrieval_v3）")
     parser.add_argument("--router", type=str, default=None,
-                        choices=["tool_calling", "rule"],
-                        help="覆盖路由器：tool_calling / rule（默认用 config）")
+                        choices=["pure_llm", "rule", "tool_calling"],
+                        help="覆盖路由器 router_mode（默认用 config）")
+    parser.add_argument("--no_bm25_rrf", action="store_true",
+                        help="关闭 BM25+RRF，回退 round-robin（baseline 用）")
     parser.add_argument("--config_note", type=str, default="",
                         help="本次 run 的额外说明，写入 summary.json")
     args = parser.parse_args()
@@ -414,10 +416,10 @@ def main():
 
     print("[2/3] 初始化 RAG 系统（首次启动需连接 Neo4j + Milvus + 加载 BGE 嵌入）...")
     rag_system = AdvancedGraphRAGSystem()
-    if args.router == "tool_calling":
-        rag_system.config.enable_tool_calling_router = True
-    elif args.router == "rule":
-        rag_system.config.enable_tool_calling_router = False
+    if args.router is not None:
+        rag_system.config.router_mode = args.router
+    if args.no_bm25_rrf:
+        rag_system.config.enable_bm25_rrf = False
     if args.enable_crag:
         rag_system.config.enable_crag = True
     if args.parent_doc:
@@ -438,7 +440,8 @@ def main():
         "llm_model":        rag_system.config.llm_model,
         "enable_crag":      rag_system.config.enable_crag,
         "enable_parent_doc_retrieval": rag_system.config.enable_parent_doc_retrieval,
-        "router":           ("tool_calling" if rag_system.config.enable_tool_calling_router else "rule"),
+        "enable_bm25_rrf":  rag_system.config.enable_bm25_rrf,
+        "router":           rag_system.config.router_mode,
         "skip_generation_eval": args.skip_generation_eval,
         "note":             args.config_note,
     }
