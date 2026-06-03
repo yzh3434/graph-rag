@@ -331,6 +331,7 @@ class EvalRunner:
                 "answer": answer,
                 "crag_triggered": bool(crag_meta.get("triggered")),
                 "web_query": crag_meta.get("web_query"),
+                "web_failed": bool(crag_meta.get("web_failed", False)),
                 "metrics": metrics,
                 "error": None,
             })
