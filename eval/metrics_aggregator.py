@@ -85,6 +85,20 @@ def aggregate_metrics(
         },
     }
 
+    in_dom = [r for r in valid if r.get("domain", "in_domain") != "out_of_domain"]
+    out_dom = [r for r in valid if r.get("domain", "in_domain") == "out_of_domain"]
+
+    def _agg(rs):
+        return {
+            "retrieval": {"hit@5": _mean(rs, "hit@5"), "recall@5": _mean(rs, "recall@5"),
+                          "mrr@10": _mean(rs, "mrr@10")},
+            "routing": {"accuracy": _mean(rs, "routing_correct")},
+            "generation": {"faithfulness": _mean(rs, "faithfulness"),
+                           "answer_relevancy": _mean(rs, "answer_relevancy")},
+            "system": {"latency_p50_ms": _percentile(rs, "latency_ms", 50),
+                       "latency_p95_ms": _percentile(rs, "latency_ms", 95)},
+        }
+
     return {
         "run_id":    run_id,
         "timestamp": datetime.now().isoformat(timespec="seconds"),
@@ -93,9 +107,12 @@ def aggregate_metrics(
         "n_valid":   n_valid,
         "n_failed":  n_total - n_valid,
         "aggregated":              aggregated,
+        "aggregated_in_domain":    _agg(in_dom),
+        "aggregated_out_of_domain": _agg(out_dom),
         "by_question_type":        group_metrics(valid, "question_type"),
         "by_expected_strategy":    group_metrics(valid, "expected_strategy"),
         "by_difficulty":           group_metrics(valid, "difficulty"),
+        "by_domain":               group_metrics(valid, "domain"),
     }
 
 
@@ -135,6 +152,19 @@ def write_markdown_report(
     L.append(f"| 生成 | Answer Relevancy | {fmt(agg['generation']['answer_relevancy'])} |")
     L.append(f"| 系统 | Latency P50 (ms) | {fmt(agg['system']['latency_p50_ms'])} |")
     L.append(f"| 系统 | Latency P95 (ms) | {fmt(agg['system']['latency_p95_ms'])} |")
+    L.append("")
+
+    L.append("## 按 domain 分组（in-domain vs out-of-domain）")
+    L.append("")
+    L.append("| domain | n | Hit@5 | Recall@5 | MRR@10 | 路由准确 | Faith | AR | 延迟均值(ms) |")
+    L.append("|---|---|---|---|---|---|---|---|---|")
+    for k, v in summary.get("by_domain", {}).items():
+        L.append(
+            f"| {k} | {v['n']} | {fmt(v['hit@5'])} | {fmt(v['recall@5'])} | "
+            f"{fmt(v['mrr@10'])} | {fmt(v['routing_correct'])} | "
+            f"{fmt(v['faithfulness'])} | {fmt(v['answer_relevancy'])} | "
+            f"{fmt(v['latency_ms_mean'])} |"
+        )
     L.append("")
 
     L.append("## 按问题类型分组")

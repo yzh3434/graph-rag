@@ -27,6 +27,7 @@ from rag_modules.hybrid_retrieval import HybridRetrievalModule
 from rag_modules.graph_rag_retrieval import GraphRAGRetrieval
 from rag_modules.intelligent_query_router import IntelligentQueryRouter, QueryAnalysis
 from rag_modules.llm_router_tool_calling import LLMRouterWithToolCalling
+from rag_modules.crag_generation import CRAGGenerator
 
 # 加载环境变量
 load_dotenv()
@@ -55,6 +56,7 @@ class AdvancedGraphRAGSystem:
         self.traditional_retrieval = None
         self.graph_rag_retrieval = None
         self.query_router = None
+        self.crag_generator = None
         
         # 系统状态
         self.system_ready = False
@@ -122,6 +124,14 @@ class AdvancedGraphRAGSystem:
                     graph_rag_retrieval=self.graph_rag_retrieval,
                     llm_client=self.generation_module.client,
                     config=self.config
+                )
+
+            # 7. CRAG 生成编排（按开关）
+            if self.config.enable_crag:
+                print("初始化 CRAG 生成编排...")
+                self.crag_generator = CRAGGenerator(
+                    generation_module=self.generation_module,
+                    config=self.config,
                 )
 
             print("✅ 高级图RAG系统初始化完成！")
@@ -294,7 +304,14 @@ class AdvancedGraphRAGSystem:
                     # 使用非流式作为后备
                     result = self.generation_module.generate_adaptive_answer(question, relevant_docs)
             else:
-                result = self.generation_module.generate_adaptive_answer(question, relevant_docs)
+                if self.config.enable_crag and self.crag_generator is not None:
+                    result, crag_meta = self.crag_generator.generate(question, relevant_docs)
+                    if crag_meta.get("triggered"):
+                        print(f"🌐 触发网络检索: {crag_meta.get('web_query')} "
+                              f"({crag_meta.get('n_web_results')} 条"
+                              f"{'，降级' if crag_meta.get('web_failed') else ''})")
+                else:
+                    result = self.generation_module.generate_adaptive_answer(question, relevant_docs)
             
             # 5. 性能统计
             end_time = time.time()

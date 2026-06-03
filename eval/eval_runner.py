@@ -265,6 +265,7 @@ class EvalRunner:
         relevant_ids = [str(x) for x in sample.source_node_ids]
         expected_strategy = sample.expected_strategy
 
+        domain = (sample.metadata or {}).get("domain", "in_domain")
         record: Dict[str, Any] = {
             "sample_idx": idx,
             "question": question,
@@ -272,6 +273,7 @@ class EvalRunner:
             "difficulty": sample.difficulty,
             "expected_strategy": expected_strategy,
             "relevant_node_ids": relevant_ids,
+            "domain": domain,
         }
 
         try:
@@ -285,15 +287,26 @@ class EvalRunner:
                 analysis.recommended_strategy.value if analysis is not None else "unknown"
             )
 
+            crag = getattr(self.rag_system, "crag_generator", None)
+            use_crag = bool(getattr(self.rag_system.config, "enable_crag", False)) and crag is not None
+
             t1 = time.perf_counter()
-            answer = self.rag_system.generation_module.generate_adaptive_answer(
-                question, relevant_docs
-            )
+            if use_crag:
+                answer, crag_meta = crag.generate(question, relevant_docs)
+            else:
+                answer = self.rag_system.generation_module.generate_adaptive_answer(
+                    question, relevant_docs
+                )
+                crag_meta = {"triggered": False, "web_query": None,
+                             "web_context": "", "n_web_results": 0, "web_failed": False}
             t_generate = time.perf_counter() - t1
             t_total = t_retrieve + t_generate
 
             retrieved_ids = self._extract_node_ids(relevant_docs)
+            # Faithfulness 上下文 = KB 上下文 +（如有）网络上下文，否则网络证据答案被冤判幻觉
             context = self._build_context(relevant_docs)
+            if crag_meta.get("web_context"):
+                context = (context + "\n\n" + crag_meta["web_context"]).strip()
 
             metrics: Dict[str, Any] = {
                 "hit@5":               hit_at_k(retrieved_ids, relevant_ids, 5),
@@ -316,6 +329,8 @@ class EvalRunner:
                 "predicted_strategy": predicted_strategy,
                 "retrieved_node_ids": retrieved_ids[:10],
                 "answer": answer,
+                "crag_triggered": bool(crag_meta.get("triggered")),
+                "web_query": crag_meta.get("web_query"),
                 "metrics": metrics,
                 "error": None,
             })
@@ -369,6 +384,13 @@ def main():
     parser.add_argument("--filter_question_type", type=str, default=None,
                         help="只评测指定类型，多个用逗号分隔，如 multi_hop,comparison")
     parser.add_argument("--log_level", type=str, default="WARNING")
+    parser.add_argument("--enable_crag", action="store_true",
+                        help="开启 CRAG 网络检索（crag_v1）")
+    parser.add_argument("--parent_doc", action="store_true",
+                        help="开启父文档检索（retrieval_v3）")
+    parser.add_argument("--router", type=str, default=None,
+                        choices=["tool_calling", "rule"],
+                        help="覆盖路由器：tool_calling / rule（默认用 config）")
     parser.add_argument("--config_note", type=str, default="",
                         help="本次 run 的额外说明，写入 summary.json")
     args = parser.parse_args()
@@ -391,6 +413,14 @@ def main():
 
     print("[2/3] 初始化 RAG 系统（首次启动需连接 Neo4j + Milvus + 加载 BGE 嵌入）...")
     rag_system = AdvancedGraphRAGSystem()
+    if args.router == "tool_calling":
+        rag_system.config.enable_tool_calling_router = True
+    elif args.router == "rule":
+        rag_system.config.enable_tool_calling_router = False
+    if args.enable_crag:
+        rag_system.config.enable_crag = True
+    if args.parent_doc:
+        rag_system.config.enable_parent_doc_retrieval = True
     rag_system.initialize_system()
     rag_system.build_knowledge_base()
     if not rag_system.system_ready:
@@ -405,6 +435,9 @@ def main():
         "retrieve_top_k":   EvalRunner.RETRIEVE_TOP_K,
         "embedding_model":  rag_system.config.embedding_model,
         "llm_model":        rag_system.config.llm_model,
+        "enable_crag":      rag_system.config.enable_crag,
+        "enable_parent_doc_retrieval": rag_system.config.enable_parent_doc_retrieval,
+        "router":           ("tool_calling" if rag_system.config.enable_tool_calling_router else "rule"),
         "skip_generation_eval": args.skip_generation_eval,
         "note":             args.config_note,
     }

@@ -19,8 +19,18 @@ venv/
 *.bin
 *.log
 
-# 评测归档（仅本地保留，不入仓库；面向外部的展示数据放 eval_output 三主线即可）
+# 评测归档（仅本地保留，不入仓库）
 eval_archive/
+
+# OOD菜谱避让名单 / 烟测临时集（仅本地，不入仓库）
+testset_output/_kb_recipe_names.txt
+testset_output/_smoke_crag.jsonl
+
+# 测试代码
+tests/
+
+# plans和specs
+docs/superpowers/
 
 # 系统文件
 .DS_Store

@@ -33,3 +33,4 @@ scipy>=1.10.0
 tqdm>=4.64.0
 pydantic>=2.0.0
 requests>=2.28.0
+tavily-python>=0.5.0
