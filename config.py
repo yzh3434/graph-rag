@@ -29,7 +29,8 @@ class GraphRAGConfig:
     top_k: int = 5
 
     # 路由配置
-    enable_tool_calling_router: bool = True    # 默认使用 tool calling路由器
+    router_mode: str = "tool_calling"          # {"pure_llm", "rule", "tool_calling"}
+    enable_tool_calling_router: bool = True    # 已废弃，保留兼容性；改用 router_mode
     enable_llm_routing_fallback: bool = False  # 规则未命中三种模式时是否调用 LLM；默认走 hybrid_traditional
 
     # CRAG（网络检索）配置
@@ -76,6 +77,7 @@ class GraphRAGConfig:
             'embedding_model': self.embedding_model,
             'llm_model': self.llm_model,
             'top_k': self.top_k,
+            'router_mode': self.router_mode,
             'enable_llm_routing_fallback': self.enable_llm_routing_fallback,
             'enable_crag': self.enable_crag,
             'enable_parent_doc_retrieval': self.enable_parent_doc_retrieval,

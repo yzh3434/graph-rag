@@ -25,12 +25,29 @@ from rag_modules import (
 )
 from rag_modules.hybrid_retrieval import HybridRetrievalModule
 from rag_modules.graph_rag_retrieval import GraphRAGRetrieval
+from rag_modules.baseline_query_router import BaselineLLMRouter
 from rag_modules.intelligent_query_router import IntelligentQueryRouter, QueryAnalysis
 from rag_modules.llm_router_tool_calling import LLMRouterWithToolCalling
 from rag_modules.crag_generation import CRAGGenerator
 
 # 加载环境变量
 load_dotenv()
+
+def make_query_router(config, traditional_retrieval, graph_rag_retrieval, llm_client):
+    """按 config.router_mode 选路由器。三选一：pure_llm / rule / tool_calling。"""
+    mode = getattr(config, "router_mode", "tool_calling")
+    common = dict(
+        traditional_retrieval=traditional_retrieval,
+        graph_rag_retrieval=graph_rag_retrieval,
+        llm_client=llm_client,
+        config=config,
+    )
+    if mode == "pure_llm":
+        return BaselineLLMRouter(**common)
+    if mode == "rule":
+        return IntelligentQueryRouter(**common)
+    return LLMRouterWithToolCalling(**common)
+
 
 class AdvancedGraphRAGSystem:
     """
@@ -109,22 +126,14 @@ class AdvancedGraphRAGSystem:
                 llm_client=self.generation_module.client
             )
             
-            # 6. 智能查询路由器
-            print("初始化智能查询路由器...")
-            if self.config.enable_tool_calling_router:
-                self.query_router = LLMRouterWithToolCalling(
-                    traditional_retrieval=self.traditional_retrieval,
-                    graph_rag_retrieval=self.graph_rag_retrieval,
-                    llm_client=self.generation_module.client,
-                    config=self.config
-                )
-            else:
-                self.query_router = IntelligentQueryRouter(
-                    traditional_retrieval=self.traditional_retrieval,
-                    graph_rag_retrieval=self.graph_rag_retrieval,
-                    llm_client=self.generation_module.client,
-                    config=self.config
-                )
+            # 6. 智能查询路由器（按 router_mode 三选一）
+            print(f"初始化智能查询路由器（router_mode={self.config.router_mode}）...")
+            self.query_router = make_query_router(
+                self.config,
+                traditional_retrieval=self.traditional_retrieval,
+                graph_rag_retrieval=self.graph_rag_retrieval,
+                llm_client=self.generation_module.client,
+            )
 
             # 7. CRAG 生成编排（按开关）
             if self.config.enable_crag:
