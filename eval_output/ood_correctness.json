@@ -1,0 +1,33 @@
+{
+  "_note": "OOD(20题) 答案质量指标。LLM 判分=对照 ground_truth 的 LLM 打分(0-1，拒答≈0)，高区分度，为 README/PPT 头条指标；embedding=BGE 余弦(地板高、区分度弱，仅供参考)；refusal_count=正则统计的拒答条数(对非 CRAG 可靠，CRAG 含网络免责声明会被误判故不计)。2026-06-03 计算。",
+  "llm_judge": {
+    "final_baseline": 0.1125,
+    "final_retrieval": 0.1850,
+    "final_parentdoc": 0.0300,
+    "final_route": 0.0950,
+    "final_route_rule": 0.0300,
+    "final_crag": 0.8275
+  },
+  "embedding_cosine": {
+    "final_baseline": 0.8655,
+    "final_retrieval": 0.8757,
+    "final_parentdoc": 0.8298,
+    "final_route": 0.8527,
+    "final_route_rule": 0.8559,
+    "final_crag": 0.8971
+  },
+  "refusal_count_of_20": {
+    "final_baseline": 17,
+    "final_retrieval": 16,
+    "final_parentdoc": 17,
+    "final_route": 20,
+    "final_route_rule": 18
+  },
+  "crag_mechanism": {
+    "ood_triggered": 20,
+    "ood_total": 20,
+    "ood_web_failed": 0,
+    "in_domain_false_trigger": 0,
+    "in_domain_total": 100
+  }
+}
