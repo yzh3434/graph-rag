@@ -1,0 +1,236 @@
+{
+  "run_id": "final_route_rule",
+  "timestamp": "2026-06-03T23:06:24",
+  "config": {
+    "use_bm25": false,
+    "use_rrf": false,
+    "use_rerank": false,
+    "topic_alignment": false,
+    "retrieve_top_k": 10,
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "llm_model": "deepseek-chat",
+    "enable_crag": false,
+    "enable_parent_doc_retrieval": true,
+    "enable_bm25_rrf": true,
+    "router": "rule",
+    "skip_generation_eval": false,
+    "note": ""
+  },
+  "n_total": 120,
+  "n_valid": 120,
+  "n_failed": 0,
+  "aggregated": {
+    "retrieval": {
+      "hit@5": 0.825,
+      "recall@5": 0.7625,
+      "mrr@10": 0.7867361111111111
+    },
+    "routing": {
+      "accuracy": 1.0
+    },
+    "generation": {
+      "faithfulness": 0.7998932947942148,
+      "answer_relevancy": 0.9033482690652211
+    },
+    "system": {
+      "latency_p50_ms": 4154.055,
+      "latency_p95_ms": 7984.427499999999,
+      "latency_retrieve_p50_ms": 1835.54,
+      "latency_generate_p50_ms": 2552.3999999999996
+    }
+  },
+  "aggregated_in_domain": {
+    "retrieval": {
+      "hit@5": 0.99,
+      "recall@5": 0.915,
+      "mrr@10": 0.9440833333333333
+    },
+    "routing": {
+      "accuracy": 1.0
+    },
+    "generation": {
+      "faithfulness": 0.8486349780850476,
+      "answer_relevancy": 0.905025414824486
+    },
+    "system": {
+      "latency_p50_ms": 3958.25,
+      "latency_p95_ms": 7937.2485
+    }
+  },
+  "aggregated_out_of_domain": {
+    "retrieval": {
+      "hit@5": 0.0,
+      "recall@5": 0.0,
+      "mrr@10": 0.0
+    },
+    "routing": {
+      "accuracy": 1.0
+    },
+    "generation": {
+      "faithfulness": 0.5561848783400507,
+      "answer_relevancy": 0.894962540268898
+    },
+    "system": {
+      "latency_p50_ms": 4940.855,
+      "latency_p95_ms": 9568.2685
+    }
+  },
+  "by_question_type": {
+    "step_by_step": {
+      "n": 25,
+      "hit@5": 0.6,
+      "recall@5": 0.6,
+      "mrr@10": 0.6,
+      "routing_correct": 1.0,
+      "faithfulness": 0.7770187063774876,
+      "answer_relevancy": 0.907091474533081,
+      "latency_ms_mean": 7065.7083999999995
+    },
+    "multi_hop": {
+      "n": 15,
+      "hit@5": 0.9333333333333333,
+      "recall@5": 0.43333333333333335,
+      "mrr@10": 0.7605555555555555,
+      "routing_correct": 1.0,
+      "faithfulness": 0.8444145669145668,
+      "answer_relevancy": 0.9091764132181803,
+      "latency_ms_mean": 2278.5566666666664
+    },
+    "entity_relation": {
+      "n": 25,
+      "hit@5": 0.6,
+      "recall@5": 0.6,
+      "mrr@10": 0.6,
+      "routing_correct": 1.0,
+      "faithfulness": 0.7428691700456408,
+      "answer_relevancy": 0.9011152354876201,
+      "latency_ms_mean": 4484.278
+    },
+    "attribute_query": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.9666666666666667,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9121428571428573,
+      "answer_relevancy": 0.9461331605911256,
+      "latency_ms_mean": 3394.6759999999995
+    },
+    "causal": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 1.0,
+      "routing_correct": 1.0,
+      "faithfulness": 0.562936691791181,
+      "answer_relevancy": 0.8771372583177353,
+      "latency_ms_mean": 6667.734666666669
+    },
+    "simple_fact": {
+      "n": 15,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.9333333333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9092592592592593,
+      "answer_relevancy": 0.8636876344680787,
+      "latency_ms_mean": 3455.7393333333334
+    },
+    "comparison": {
+      "n": 10,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.95,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9558697838109603,
+      "answer_relevancy": 0.9254607538382211,
+      "latency_ms_mean": 5237.160999999999
+    }
+  },
+  "by_expected_strategy": {
+    "hybrid_traditional": {
+      "n": 95,
+      "hit@5": 0.7894736842105263,
+      "recall@5": 0.7894736842105263,
+      "mrr@10": 0.7736842105263158,
+      "routing_correct": 1.0,
+      "faithfulness": 0.7764450424576596,
+      "answer_relevancy": 0.9001004058018066,
+      "latency_ms_mean": 5173.914842105263
+    },
+    "graph_rag": {
+      "n": 15,
+      "hit@5": 0.9333333333333333,
+      "recall@5": 0.43333333333333335,
+      "mrr@10": 0.7605555555555555,
+      "routing_correct": 1.0,
+      "faithfulness": 0.8444145669145668,
+      "answer_relevancy": 0.9091764132181803,
+      "latency_ms_mean": 2278.5566666666664
+    },
+    "combined": {
+      "n": 10,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.95,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9558697838109603,
+      "answer_relevancy": 0.9254607538382211,
+      "latency_ms_mean": 5237.160999999999
+    }
+  },
+  "by_difficulty": {
+    "medium": {
+      "n": 50,
+      "hit@5": 0.6,
+      "recall@5": 0.6,
+      "mrr@10": 0.6,
+      "routing_correct": 1.0,
+      "faithfulness": 0.759943938211564,
+      "answer_relevancy": 0.9041033550103506,
+      "latency_ms_mean": 5774.993200000001
+    },
+    "hard": {
+      "n": 40,
+      "hit@5": 0.975,
+      "recall@5": 0.7875,
+      "mrr@10": 0.8977083333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.7667241679673955,
+      "answer_relevancy": 0.9012328152855236,
+      "latency_ms_mean": 4664.1494999999995
+    },
+    "easy": {
+      "n": 30,
+      "hit@5": 1.0,
+      "recall@5": 1.0,
+      "mrr@10": 0.95,
+      "routing_correct": 1.0,
+      "faithfulness": 0.9107010582010581,
+      "answer_relevancy": 0.904910397529602,
+      "latency_ms_mean": 3425.2076666666667
+    }
+  },
+  "by_domain": {
+    "in_domain": {
+      "n": 100,
+      "hit@5": 0.99,
+      "recall@5": 0.915,
+      "mrr@10": 0.9440833333333333,
+      "routing_correct": 1.0,
+      "faithfulness": 0.8486349780850476,
+      "answer_relevancy": 0.905025414824486,
+      "latency_ms_mean": 4614.1567000000005
+    },
+    "out_of_domain": {
+      "n": 20,
+      "hit@5": 0.0,
+      "recall@5": 0.0,
+      "mrr@10": 0.0,
+      "routing_correct": 1.0,
+      "faithfulness": 0.5561848783400507,
+      "answer_relevancy": 0.894962540268898,
+      "latency_ms_mean": 5832.8099999999995
+    }
+  }
+}
