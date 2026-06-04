@@ -1,124 +1,117 @@
-# 融合图检索与混合召回的智能问答系统
+# 融合图检索、混合召回与网络纠错的智能问答系统
 
-基于 Datawhale 开源项目 **All-in-RAG**（Chapter 9）二次开发，围绕"烹饪问答"场景构建集成 **Neo4j 图数据库 + Milvus 向量库 + LLM** 的 Graph RAG 系统。在原项目基础上自建 **100 题评测集（7 类问题 × 3 难度）**，落地 **"检索 / 路由 / 生成 / 系统" 四层指标评测闭环**，并完成 **智能路由两层架构（规则短路 + LLM 兜底）**、**启用真正的中文 BM25（jieba 分词 + 停用词过滤）**、**RRF 融合替代 round-robin** 三项核心改进。
+基于 Datawhale 开源项目 **All-in-RAG**（Chapter 9）二次开发，围绕"烹饪问答"场景构建集成 **Neo4j 图数据库 + Milvus 向量库 + LLM** 的 Graph RAG 系统。在原项目基础上自建 **评测集（7 类问题 × 3 难度，120 题 = 100 库内 + 20 库外）**、落地 **"检索 / 路由 / 生成 / 系统" 四层指标评测闭环**，并完成四项核心改进：
 
-### 🎯 三版核心指标对比
+1. **真正的中文 BM25（jieba 分词 + 停用词）+ RRF 融合**替代 round-robin（已合并入原项目 PR #106）
+2. **父文档回填（small-to-big）**消除长菜谱步骤/食材上下文的非确定性截断（已合并入原项目）
+3. **智能路由两版迭代**：规则短路两层架构 → LLM function-calling 自主选路
+4. **CRAG 网络纠错（Corrective-RAG）**：生成前自评上下文是否充分，不足则触发 Tavily 网络检索补答，解决库外问题
 
-| 指标 | Baseline | + 智能路由 | **+ BM25/RRF（最终版）** | 总提升 |
-|---|---|---|---|---|
-| MRR@10 | 0.628 | 0.727 | **0.939** | **+50%** |
-| 路由准确率 | 0.740 | 1.000 | **1.000** | +35% |
-| Hit@5 | 0.890 | 0.990 | **0.990** | +11% |
-| P50 延迟 | 9.86 s | 5.65 s | **5.21 s** | **-47%** |
+### 🎯 核心指标：五版累加消融（in-domain 100 题）
+
+| 指标 | Baseline | +BM25/RRF | +父文档 | +智能路由 | **+CRAG** |
+|---|---|---|---|---|---|
+| MRR@10 | 0.625 | **0.917** | 0.913 | **0.944** | 0.944 |
+| Hit@5 | 0.890 | 0.960 | 0.960 | **0.990** | 0.990 |
+| Faithfulness | 0.690 | 0.691 | **0.850** | 0.851 | **0.884** |
+| 路由准确率 | 0.710 | 0.720 | 0.710 | **1.000** | 1.000 |
+| P50 延迟 | 7.19 s | 7.28 s | 7.63 s | **4.91 s** | 4.60 s |
 
 ![总体核心指标对比](docs/figures/01_overall_radar.png)
 
-## 📍 项目进度
+> **读法（累加式消融）**：每一列在前一列基础上叠加一个模块。BM25/RRF → 检索排序跃升（MRR 0.625→0.917）；父文档 → 忠实度跃升（Faithfulness 0.69→0.85）；智能路由 → 检索再升 + 延迟大降（路由准确率→1.0，P50 7.2s→4.9s）；CRAG → 库内零回归（Faithfulness 还升到 0.884）。
+>
+> *累加式消融的相邻差值是"在已有模块之上再加该模块"的边际收益，非模块的独立贡献；路由维度另用受控变量法单独隔离（见下）。*
 
-### ✅ 已完成
-- [x] **测试集生成**：覆盖 7 类问题 × 3 难度的自建 100 题评测集
-- [x] **评测体系**：检索 / 路由 / 生成 / 系统四层指标 + per_sample / summary / report 三件套
-- [x] **Baseline 模型**跑通并完成评估
-- [x] **智能路由模块重构**：纯 LLM 调用 → "规则短路 + LLM 兜底" 两层架构；实体词典 longest-match + 强意图关键词识别；multi_hop（多食材共现）/ comparison（两菜对比）Fast Path 直查 Cypher 跳过 LLM 意图分析
-- [x] **启用真正的中文 BM25**：jieba 精确分词 + 中文停用词过滤 + `BM25Okapi` 索引，替代原项目仅占位的 `BM25Retriever`
-- [x] **RRF 融合替代 round-robin**：标准公式 `score = Σ 1/(k + rank)`，k=60，跨检索源消除分数尺度差异
-- [x] **三版评测对比可视化**：`eval/plot_comparison.py` → `docs/figures/` 三张 PNG（雷达图 / MRR 分组柱状 / 延迟）
+## 🧩 智能路由：两版迭代 + 受控变量对比
 
-### 📋 计划中
-- [ ] 修复双层检索主题级关键词未对齐问题
-  - [ ] 查询端：使用 LLM 动态生成主题关键词
-  - [ ] 索引端：当前为硬编码，需统一对齐策略，避免几乎无法命中 KV 索引的问题
-- [ ] 修复 Fast Path 中 Cypher `CONTAINS` 过度匹配问题（"葱油" 误命中 "葱油拌面" 等）：先 EXACT 后 CONTAINS 退路
-- [ ] 修复 causal 类生成 prompt（当前 Faithfulness 仅 0.24，拖累整体）
-- [ ] 为 LLM 调用增加缓存机制，避免重复查询带来的性能开销
+路由经历两次迭代：**①规则短路两层架构（规则命中直接出策略、未命中再调 LLM）→ ②LLM function-calling 自主选路**。固定检索管线（BM25/RRF + 父文档）、只切换路由器做受控对比：
 
-## 📊 测试集说明
+| 路由器 | 路由准确率 | P50 延迟 | P95 延迟 |
+|---|---|---|---|
+| 纯 LLM（datawhale 原始） | 0.758 | 7.48 s | 10.96 s |
+| 规则短路（第一版改进） | **1.000** | **4.15 s** | **7.98 s** |
+| function-calling（第二版改进） | **1.000** | 5.13 s | 8.97 s |
 
-本项目使用自建测试集进行评估，共包含 **100 个样本**，覆盖 7 种问题类型、3 个难度等级，并针对不同检索策略进行了针对性设计，旨在全面评估 RAG 系统在不同场景下的表现。
+![路由专项对比](docs/figures/03_routing_ablation.png)
 
+两版自研路由都把准确率从 0.758 拉满到 1.0、延迟大幅下降；规则版最快（多跳/对比类走 Fast Path 直查 Cypher，免去图侧 LLM 意图分析），function-calling 版同样满分且更易扩展新检索源。
 
-### 问题类型与检索策略对应关系
+## 🌐 CRAG 网络纠错：解决库外（OOD）问题
 
-测试集为每种问题类型预先标注了**预期检索策略**，用于验证智能路由模块的分流准确性：
+知识库未收录的菜（西餐、日餐、东南亚菜等）问出来时，纯本地检索只能召回不相关菜谱。CRAG 在生成阶段先**自评检索上下文是否足以回答**：充分则直接答（库内零额外开销），不足则改写检索词、调 **Tavily 网络检索**补充上下文后再生成。
 
-| 问题类型 | 数量 | 占比 | 预期策略 | 设计动机 |
-|---------|------|------|---------|---------|
-| `simple_fact` | 15 | 15% | `hybrid_traditional` | 简单事实查询，传统检索足以应对 |
-| `attribute_query` | 15 | 15% | `hybrid_traditional` | 属性查询适合关键词 + 向量召回 |
-| `step_by_step` | 15 | 15% | `hybrid_traditional` | 步骤型内容多以连续文本形式存在 |
-| `causal` | 15 | 15% | `hybrid_traditional` | 因果关系常隐含在段落语义中 |
-| `entity_relation` | 15 | 15% | `hybrid_traditional` | 实体识别 + 上下文检索 |
-| `multi_hop` | 15 | 15% | `graph_rag` | 多跳推理依赖实体间关系链 |
-| `comparison` | 10 | 10% | `combined` | 对比类问题需融合事实与关系 |
+在 20 题库外测试集上，用 **LLM 判分正确性**（对照人工 ground_truth 打分，拒答≈0、答对≈1）衡量：
 
-### 检索策略说明
+![CRAG 库外问题价值](docs/figures/04_crag_ood.png)
 
-测试集设计了三种检索策略，对应不同的问题场景：
+- **不开 CRAG**：系统对库外问题诚实拒答（"知识库没有此菜"，不瞎编），LLM 判分正确性仅 **0.03–0.19**。
+- **开 CRAG**：全部触发网络检索作答，正确性升至 **0.83**（约 4–8 倍）。
+- **机制可靠性**：库外 **20/20 全触发**网络检索、**Tavily 0 失败**、库内 **0/100 误触发**（不该触发时绝不画蛇添足）。
 
-**`hybrid_traditional`（75 条，75%）—— 三路归并的传统混合检索**
+> *库外问题无 gold 节点，故不报检索指标；也不报 Faithfulness——它衡量"答案被检索片段支撑的比例"，而 Tavily 短 snippet 撑不起完整菜谱、非 CRAG 的简短拒答反而易被判支撑，对库外有误导。库外答案质量以 LLM 判分为准。*
 
-融合三路召回结果，覆盖大多数事实型与语义型问题：
-- 实体级 + 主题级 键值对检索
-- Milvus 向量检索
-- BM25 关键词检索
+## ⏱️ 端到端延迟
 
-三路结果通过 **RRF（Reciprocal Rank Fusion）** 进行融合排序。
+![延迟对比](docs/figures/02_latency.png)
 
-**`graph_rag`（15 条，15%）—— 图检索**
+智能路由的 Fast Path（多跳共现 / 两菜对比模式直查 Cypher，跳过图侧 LLM 意图分析）是 P50 从 7.2s 降到 4.9s 的主要来源；BM25/RRF、父文档是内存/单次查询，未引入额外延迟；CRAG 仅在库外问题（约占评测 1/6）触发一次额外网络往返。
 
-使用 **Cypher 查询语言**在 **Neo4j 图数据库**中进行结构化检索，专门用于处理需要实体间多跳关系推理的问题（`multi_hop` 类型）。
+## 📊 评测集说明（120 题 = 100 库内 + 20 库外）
 
-**`combined`（10 条，10%）—— 组合检索**
+自建测试集，覆盖 **7 种问题类型 × 3 难度**，并为每题预标注**预期检索策略**，用于验证智能路由分流准确性。
 
-将传统混合检索与图检索的结果进行合并，适用于既需要事实信息、又涉及实体关系的复杂场景（`comparison` 类型）。
+### 库内 100 题：问题类型与检索策略
 
-### 难度分布
+| 问题类型 | 数量 | 预期策略 | 设计动机 |
+|---|---|---|---|
+| `simple_fact` | 15 | `hybrid_traditional` | 简单事实查询，传统检索足以应对 |
+| `attribute_query` | 15 | `hybrid_traditional` | 属性查询适合关键词 + 向量召回 |
+| `step_by_step` | 15 | `hybrid_traditional` | 步骤型内容多以连续文本形式存在 |
+| `causal` | 15 | `hybrid_traditional` | 因果关系常隐含在段落语义中 |
+| `entity_relation` | 15 | `hybrid_traditional` | 实体识别 + 上下文检索 |
+| `multi_hop` | 15 | `graph_rag` | 多跳推理依赖实体间关系链 |
+| `comparison` | 10 | `combined` | 对比类问题需融合事实与关系 |
 
-| 难度 | 数量 | 占比 |
-|------|------|------|
-| 🟢 Easy | 30 | 30% |
-| 🟡 Medium | 30 | 30% |
-| 🔴 Hard | 40 | 40% |
+### 库外 20 题（OOD，验证 CRAG）
 
-> 测试集设计偏向中高难度（Hard 占 40%），并通过问题类型与检索策略的预设映射，为后续验证智能路由准确率提供 ground truth。
+枚举 Neo4j 全部菜名做**避让名单**，构造 20 道**库里没有**的菜（西/日/东南亚/印度等），含人工撰写 ground_truth；类型为 10 `step_by_step` + 10 `entity_relation`，`source_node_ids` 为空、`metadata.domain = out_of_domain`。评测按 domain 切分，库内/库外分别聚合。
 
-## 📈 评估结果（三版对比）
+### 三种检索策略
 
-在自建测试集上对三个版本（Baseline → + 智能路由 → + BM25/RRF）进行了完整评估，覆盖**检索 / 路由 / 生成 / 系统**四个层面。
+- **`hybrid_traditional`** —— 三路召回（实体级+主题级键值对 / Milvus 向量 / BM25 关键词）经 **RRF（Reciprocal Rank Fusion, k=60）** 融合，命中后做**父文档回填**。
+- **`graph_rag`** —— 在 Neo4j 用 **Cypher** 做结构化检索，处理多跳关系推理（`multi_hop`）。
+- **`combined`** —— 合并传统混合检索与图检索，适用既需事实又涉关系的复杂场景（`comparison`）。
 
-### 总体指标
+## 🔬 评测方法学
 
-| 层 | 指标 | Baseline | + 智能路由 | + BM25/RRF |
-|---|---|---|---|---|
-| 检索 | Hit@5 | 0.890 | 0.990 | **0.990** |
-| 检索 | Recall@5 | 0.849 | 0.915 | **0.915** |
-| 检索 | MRR@10 | 0.628 | 0.727 | **0.939** |
-| 路由 | Routing Accuracy | 0.740 | 1.000 | **1.000** |
-| 生成 | Faithfulness | 0.671 | 0.734 | **0.734** |
-| 生成 | Answer Relevancy | 0.900 | 0.902 | **0.906** |
-| 系统 | Latency P50 (ms) | 9856 | 5647 | **5214** |
-| 系统 | Latency P95 (ms) | 15969 | 12983 | **12182** |
+- **检索层**：Hit@5 / Recall@5 / MRR@10（库外无 gold 节点，不适用）
+- **路由层**：Routing Accuracy（对照预标注策略）
+- **生成层**：Faithfulness / Answer Relevancy（手搓 RAGAS）；库外另用**答案正确性 vs ground_truth**（LLM 判分 + embedding 余弦）
+- **系统层**：Latency P50 / P95
+- **消融方法**：主链=累加式（逐模块叠加，看边际收益）；路由=受控变量（固定管线只换路由器，看独立贡献）
 
-> Hit@5 / Recall@5 在 + 智能路由 阶段已基本触顶（多跳查询从被错路由到 hybrid_traditional 改为正确路由到 graph_rag，召回大幅修复），后续 BM25/RRF 改进主要体现在 **MRR@10 排序质量** 上。
+完整数值见 [`eval_output/FINAL_RESULTS.md`](eval_output/FINAL_RESULTS.md)。
 
-### 按问题类型 MRR@10 对比
-
-![按问题类型 MRR 对比](docs/figures/02_mrr_by_question_type.png)
-
-**关键观察**：BM25 + RRF 仅作用于 `hybrid_traditional` 路径上的 5 类问题（事实查询 / 属性查询 / 步骤型 / 因果推理 / 实体关系），这 5 类 MRR@10 全部接近触顶（4 类 ≥ 0.97，simple_fact 0.93）；走 `graph_rag` 的多跳查询、走 `combined` 的两菜对比完全不受 BM25/RRF 改动影响 —— 验证了 **智能路由模块** 与 **BM25/RRF 融合** 是两个正交独立的改动。
-
-### 端到端延迟对比
-
-![延迟对比](docs/figures/03_latency.png)
-
-智能路由的 Fast Path（multi_hop 共现 + comparison 对比模式直接查 Cypher，跳过图侧 LLM 意图分析）是 P50 延迟从 9.86s 降到 5.65s 的主要来源；BM25 / RRF 改动是内存查询，未引入额外延迟。
-
-### 复现评估
+## ▶️ 复现
 
 ```bash
-# 跑某一版评测（约 30 分钟 LLM 调用）
-python -m eval.eval_runner --run_id <版本名>
+# 前置：Neo4j + Milvus 已起、知识库已建，.env 配置 DEEPSEEK_API_KEY 与 TAVILY_API_KEY
+
+# 跑某一版评测（约 40 分钟 / 120 题），用 CLI flag 控制消融维度：
+python -m eval.eval_runner --run_id final_baseline   --no_bm25_rrf --router pure_llm
+python -m eval.eval_runner --run_id final_retrieval  --router pure_llm
+python -m eval.eval_runner --run_id final_parentdoc  --router pure_llm --parent_doc
+python -m eval.eval_runner --run_id final_route      --router tool_calling --parent_doc
+python -m eval.eval_runner --run_id final_crag       --router tool_calling --parent_doc --enable_crag
+python -m eval.eval_runner --run_id final_route_rule --router rule --parent_doc
+
+# 库外答案质量（离线，不重跑评测）
+python -m eval.score_llm_correctness --per_sample eval_output/final_crag_per_sample.jsonl \
+    --testset testset_output/testset.jsonl --domain out_of_domain
 
 # 重新生成对比图
 python -m eval.plot_comparison
 ```
+
+> Windows 下若用 conda 环境跑评测，需设 `KMP_DUPLICATE_LIB_OK=TRUE` 与 `PYTHONIOENCODING=utf-8`。
